@@ -48,7 +48,7 @@
       100% { background-position: 40px 250px, 80px 250px, 30px 250px, 100px 250px; }
     }
 
-    /* Intro Curtain (Unlocks Web Audio on iOS & Android) */
+    /* Intro Curtain */
     #welcomeCover {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -476,7 +476,7 @@
 <body>
   <div class="snow"></div>
 
-  <!-- Intro Screen (Unlocks Web Audio smoothly on iPhone & Android) -->
+  <!-- Intro Screen -->
   <div id="welcomeCover" onclick="openAndStartMusic()">
     <div class="cover-box">
       <div class="cover-tag">🎄 Christmas 2026 🎅</div>
@@ -485,7 +485,7 @@
     </div>
   </div>
 
-  <!-- Volume Controls (Slider & Mute) -->
+  <!-- Volume Controls -->
   <div class="music-bar">
     <button class="vol-btn" id="volIcon" onclick="toggleMute()" title="Mute/Unmute">🔊</button>
     <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="0.6" oninput="changeVolume(this.value)">
@@ -509,7 +509,7 @@
           <p style="font-size:0.85rem; color:#777; text-transform:uppercase; letter-spacing:1px; font-weight:600;">You are gifting:</p>
           <div class="revealed-name" id="matchNameDisplay">???</div>
 
-          <!-- Recipient's Wishlist Display (Auto-synced) -->
+          <!-- Recipient's Wishlist Display -->
           <div class="target-wishlist-box">
             <div class="target-wishlist-title">🎁 <span id="targetNameLabel">Recipient</span>'s Wishlist:</div>
             <div id="targetWishlistItems" style="font-size:0.85rem; color:#555;">Loading wishlist...</div>
@@ -533,7 +533,7 @@
         </div>
 
         <div class="wish-list" id="myWishlistContainer">
-          <!-- Live items go here -->
+          <!-- Live items -->
         </div>
       </div>
     </div>
@@ -563,7 +563,7 @@
         <div id="tabMasterView">
           <div id="masterListContent"></div>
           <button class="btn-copy" onclick="copyMasterHistory()">📋 Copy Master Record</button>
-          <button class="btn-reshuffle" onclick="confirmReshuffle()">🎲 Reshuffle All (Excluding 2025)</button>
+          <button class="btn-reshuffle" onclick="confirmReshuffle()">🎲 Reshuffle All (Excluding 2023, 2024 & 2025)</button>
         </div>
 
         <div id="tabShareView" style="display:none;">
@@ -579,15 +579,23 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mdWF5a3ZkbGFzeGhzdGNjd2RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTI0MzgsImV4cCI6MjEwNTgyODQzOH0.f0mUjTiGtmQT0mUSnFZRzIoSseM3m0lY7CH0A6pe650";
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    /* 2025 Past Pairs That CANNOT Be Repeated */
-    const EXCLUSIONS_2025 = {
-      "Pera": "Merry",
-      "Leara": "Gadi",
-      "Niki": "Elzie",
-      "Evelyn": "Via",
-      "Gadi": "Ching",
-      "Ching": "Leara",
-      "Gimbs": "Pera"
+    /* 
+      COMPLETE 3-YEAR EXCLUSION MATRIX (2023 + 2024 + 2025)
+      No participant will draw anyone they drew in the last 3 years!
+    */
+    const EXCLUSIONS_HISTORY = {
+      "Pera": ["Merry", "Jason"],
+      "Via": ["Leo", "Gadi", "Merry"],
+      "Leara": ["Gadi", "Merry", "Mag"],
+      "Rozabelle": ["Caleb", "Via", "Eric"],
+      "Niki": ["Elzie", "Peraa", "Pera"],
+      "Evelyn": ["Via", "Ekka"],
+      "Gadi": ["Ching", "Magdalen", "Buna"],
+      "Ching": ["Leara", "Joan", "Bellep", "Rozabelle"],
+      "Merry": ["Jason", "Evelyn", "Aggy"],
+      "Lulong": ["Eric", "Ching", "Sharone"],
+      "Gimbs": ["Peraa", "Pera", "Evonna", "Lulong"],
+      "Elzie": ["Aggy", "Leara", "Ikuk"]
     };
 
     const PARTICIPANTS = [
@@ -595,23 +603,23 @@
       "Evelyn", "Gadi", "Ching", "Merry", "Lulong", "Gimbs", "Elzie"
     ];
 
-    // Initial default pairings
+    // Verified 2026 starting pairings that violate ZERO 2023, 2024, or 2025 rules
     let PAIRINGS_2026 = {
       "Pera": "Elzie",
-      "Via": "Leara",
-      "Leara": "Via",
-      "Rozabelle": "Pera",
+      "Via": "Rozabelle",
+      "Leara": "Pera",
+      "Rozabelle": "Lulong",
       "Niki": "Gimbs",
       "Evelyn": "Merry",
-      "Gadi": "Lulong",
+      "Gadi": "Leara",
       "Ching": "Niki",
-      "Merry": "Evelyn",
-      "Lulong": "Rozabelle",
+      "Merry": "Gadi",
+      "Lulong": "Evelyn",
       "Gimbs": "Ching",
-      "Elzie": "Gadi"
+      "Elzie": "Via"
     };
 
-    // Load any saved reshuffled draw from localStorage
+    // Load persisted pairings from localStorage if available
     const savedDraw = localStorage.getItem("gingerbread_pairings_2026");
     if (savedDraw) {
       try { PAIRINGS_2026 = JSON.parse(savedDraw); } catch(e) {}
@@ -641,18 +649,21 @@
       unauthorizedScreen.style.display = "block";
     }
 
-    /* --- Reshuffle Logic (Excludes Self & 2025 Pairs) --- */
+    /* --- Reshuffle Algorithm (Strictly Checks All 3 Years & No Self-Picks) --- */
     function generateNewPairings() {
       let attempts = 0;
-      while (attempts < 5000) {
+      while (attempts < 10000) {
         attempts++;
         let pool = [...PARTICIPANTS];
         let result = {};
         let failed = false;
 
         for (let giver of PARTICIPANTS) {
-          // Cannot pick self AND cannot repeat 2025 match
-          let validTargets = pool.filter(p => p !== giver && EXCLUSIONS_2025[giver] !== p);
+          const pastDisallowed = EXCLUSIONS_HISTORY[giver] || [];
+          
+          // Must not pick self AND must not be in past 3-year history
+          let validTargets = pool.filter(p => p !== giver && !pastDisallowed.includes(p));
+          
           if (validTargets.length === 0) {
             failed = true;
             break;
@@ -668,7 +679,7 @@
     }
 
     function confirmReshuffle() {
-      if (confirm("⚠️ Are you sure you want to reshuffle everyone?\n\nThis will re-roll all matches while strictly ensuring nobody gets the same person as in 2025.")) {
+      if (confirm("⚠️ Reshuffle All Pairings?\n\nThis will re-roll all Secret Santa assignments while strictly ensuring NO ONE gets anyone they drew in 2023, 2024, or 2025!")) {
         const newPairs = generateNewPairings();
         if (newPairs) {
           PAIRINGS_2026 = newPairs;
@@ -678,7 +689,9 @@
             document.getElementById("targetNameLabel").textContent = targetUser;
           }
           buildAdminContent();
-          alert("🎉 Reshuffled successfully! All 2025 exclusions respected.");
+          alert("🎉 Fresh 2026 draw generated! All 3-year exclusions respected.");
+        } else {
+          alert("Could not find a valid combination. Please try again.");
         }
       }
     }
@@ -799,7 +812,7 @@
     }
 
     /* -------------------------------------------------------------
-       Unified Web Audio API Music-Box (iOS & Android)
+       Unified Web Audio Engine (iOS & Android)
        ------------------------------------------------------------- */
     let audioCtx = null;
     let masterGain = null;
