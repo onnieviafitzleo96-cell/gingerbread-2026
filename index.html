@@ -3,292 +3,288 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎄 Gingerbread's Gathering 2026 🎅</title>
+  <title>Gingerbread's Gathering 2026</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --bg: #0b1d3a;
-      --card-bg: rgba(255, 255, 255, 0.96);
-      --primary-red: #c0392b;
-      --pine-green: #27ae60;
-      --gold: #f39c12;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --primary: #1976d2;
+      --text: #2c3e50;
+      --accent: #27ae60;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at top, #1a365d, #0b1d3a);
-      color: #2c3e50;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 1.5rem 1rem;
       min-height: 100vh;
+    }
+    .wrapper {
+      background: var(--card-bg);
+      max-width: 440px;
+      width: 100%;
+      border-radius: 24px;
+      padding: 1.8rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    .header-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 0.25rem;
+    }
+    .header-sub {
+      font-size: 0.88rem;
+      color: #718096;
+      margin-bottom: 1.25rem;
+    }
+    .active-user-banner {
+      background: #ebf8ff;
+      border: 1px solid #bee3f8;
+      color: #2b6cb0;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .draw-list {
       display: flex;
       flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+    .person-row {
+      display: flex;
       align-items: center;
-      padding: 1.5rem 1rem 3rem 1rem;
+      justify-content: space-between;
+      background: #fafafa;
+      border: 1px solid #eef0f2;
+      padding: 0.9rem 1.1rem;
+      border-radius: 14px;
+      transition: all 0.2s ease;
     }
-    .snow {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-      background-image: 
-        radial-gradient(4px 4px at 20px 30px, #fff, rgba(0,0,0,0)),
-        radial-gradient(3px 3px at 40px 70px, #ffffffdd, rgba(0,0,0,0)),
-        radial-gradient(5px 5px at 90px 40px, #fff, rgba(0,0,0,0));
-      background-size: 200px 200px;
-      animation: snowFall 6s linear infinite;
+    .person-row.is-me {
+      background: #fff;
+      border: 2px solid #3182ce;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(49, 130, 206, 0.12);
     }
-    @keyframes snowFall {
-      0% { background-position: 0 0, 0 0, 0 0; }
-      100% { background-position: 50px 200px, 100px 200px, 70px 200px; }
-    }
-    .card {
-      max-width: 500px;
-      width: 100%;
-      background: var(--card-bg);
-      border-radius: 24px;
-      padding: 2rem 1.5rem;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      position: relative;
-      z-index: 2;
-    }
-    h1 { color: var(--primary-red); font-size: 1.7rem; margin-bottom: 0.25rem; }
-    p.sub { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; }
-    select, button, input {
-      width: 100%;
-      padding: 0.9rem;
-      border-radius: 12px;
+    .person-name {
+      font-weight: 600;
       font-size: 1rem;
-      border: 1px solid #ddd;
-      margin-bottom: 1rem;
+      color: #2d3748;
     }
-    select { background: #fff; font-weight: 500; }
-    .btn-main {
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-      color: #fff;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
-    }
-    .gift-box {
-      font-size: 4rem;
-      margin: 1.5rem 0 0.5rem;
-      cursor: pointer;
-      display: inline-block;
-      transition: transform 0.2s;
-    }
-    .gift-box:hover { transform: scale(1.1) rotate(-5deg); }
-    .reveal-box {
-      margin-top: 1rem;
-      padding: 1.5rem;
-      background: #fdf2e9;
-      border: 2px dashed var(--gold);
-      border-radius: 16px;
-      display: none;
-    }
-    .revealed-name {
-      font-size: 1.8rem;
-      color: var(--pine-green);
-      font-weight: 800;
-      margin: 0.5rem 0;
-    }
-    .admin-link {
-      margin-top: 2rem;
+    .badge {
       font-size: 0.85rem;
-      color: #7f8c8d;
-      cursor: pointer;
-      text-decoration: underline;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
     }
-    .admin-panel {
-      display: none;
+    .badge-locked {
+      background: #edf2f7;
+      color: #a0aec0;
+    }
+    .badge-tap {
+      background: #3182ce;
+      color: #fff;
+    }
+    .badge-revealed {
+      background: #c6f6d5;
+      color: #22543d;
+      font-weight: 700;
+    }
+    .admin-toggle {
+      text-align: center;
       margin-top: 1.5rem;
-      text-align: left;
-      background: #f8f9fa;
-      padding: 1rem;
-      border-radius: 12px;
-      border: 1px solid #eee;
+      font-size: 0.8rem;
+      color: #a0aec0;
+      cursor: pointer;
     }
-    .pair-row {
+    .admin-box {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f7fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+    }
+    .share-row {
       display: flex;
       justify-content: space-between;
-      padding: 0.4rem 0;
-      border-bottom: 1px solid #eee;
-      font-size: 0.9rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .btn-wa {
+      background: #25d366;
+      color: #fff;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="snow"></div>
 
-  <div class="card">
-    <h1>🎄 Gingerbread Gathering</h1>
-    <p class="sub">Secret Santa 2026</p>
+<div class="wrapper">
+  <div class="header-title">Gingerbread's Gathering 2026</div>
+  <div class="header-sub">Christmas Exchange Gifts</div>
 
-    <label for="userSelect" style="display:block; text-align:left; font-weight:600; margin-bottom:0.4rem;">Who are you?</label>
-    <select id="userSelect">
-      <option value="">-- Choose your name --</option>
-    </select>
+  <div id="userBanner" class="active-user-banner" style="display:none;"></div>
 
-    <div id="drawSection" style="display:none;">
-      <div class="gift-box" onclick="revealPair()">🎁</div>
-      <p style="font-size:0.9rem; color:#888;">Tap the gift box to see who you got!</p>
+  <div class="draw-list" id="listContainer"></div>
 
-      <div id="revealBox" class="reveal-box">
-        <p style="color:#555;">You are giving a gift to:</p>
-        <div id="receiverDisplay" class="revealed-name">???</div>
-        <button onclick="hidePair()" style="background:#6c757d; color:#fff; border:none; margin-top:1rem; padding:0.6rem;">🔒 Hide & Lock</button>
-      </div>
+  <div class="admin-toggle" onclick="toggleAdmin()">⚙️ Organizer Share Links</div>
+  <div class="admin-box" id="adminBox">
+    <div id="adminAuth">
+      <input type="password" id="adminPin" placeholder="Organizer PIN (2026)" style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid #cbd5e0; border-radius:6px;" />
+      <button onclick="unlockAdmin()" style="width:100%; padding:0.5rem; background:#3182ce; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Unlock Links</button>
     </div>
-
-    <div class="admin-link" onclick="toggleAdmin()">🔐 Organizer / History Keeper</div>
-
-    <div id="adminPanel" class="admin-panel">
-      <div id="adminAuth">
-        <p style="font-size:0.85rem; margin-bottom:0.5rem;">Enter Organizer PIN:</p>
-        <input type="password" id="adminPin" placeholder="PIN (Default: 2026)" />
-        <button class="btn-main" onclick="verifyAdmin()" style="padding:0.6rem;">Unlock Master History</button>
-      </div>
-      <div id="adminContent" style="display:none;">
-        <h4 style="margin-bottom:0.5rem;">Master Draw List (2026)</h4>
-        <div id="masterList"></div>
-        <button onclick="copyMasterList()" class="btn-main" style="background:#27ae60; margin-top:0.75rem; padding:0.6rem;">📋 Copy Results for Notes</button>
-        <button onclick="rerunDraw()" style="background:#e74c3c; color:#fff; border:none; margin-top:0.4rem; padding:0.6rem;">🔄 Re-draw All Pairs</button>
-      </div>
+    <div id="adminLinks" style="display:none;">
+      <p style="margin-bottom:0.75rem; color:#4a5568;">Send each person their private link so they can only open their own card:</p>
+      <div id="linksList"></div>
     </div>
   </div>
+</div>
 
-  <script>
-    const PARTICIPANTS = [
-      "Pera", "Via", "Leara", "Rozabelle", "Niki", 
-      "Evelyn", "Gadi", "Ching", "Merry", "Lulong", "Gimbs", "Elzie"
-    ];
+<script>
+  const PARTICIPANTS = [
+    "Pera", "Via", "Leara", "Rozabelle", "Niki", 
+    "Evelyn", "Gadi", "Ching", "Merry", "Lulong", "Gimbs", "Elzie"
+  ];
 
-    // Exclude 2025 matches
-    const PAST_2025 = {
-      "Pera": "Merry",
-      "Leara": "Gadi",
-      "Niki": "Elzie",
-      "Evelyn": "Via",
-      "Gadi": "Ching",
-      "Ching": "Leara",
-      "Gimbs": "Pera"
-    };
+  // 2025 past exclusions
+  const EXCLUSIONS = {
+    "Pera": "Merry",
+    "Leara": "Gadi",
+    "Niki": "Elzie",
+    "Evelyn": "Via",
+    "Gadi": "Ching",
+    "Ching": "Leara",
+    "Gimbs": "Pera"
+  };
 
-    const ADMIN_PIN = "2026"; // Change your PIN here if you want!
-    let pairings = {};
+  const SEED_KEY = "gingerbread_2026_locked_pairings";
 
-    function generateDraw() {
-      let attempts = 0;
-      while (attempts < 5000) {
-        attempts++;
-        let pool = [...PARTICIPANTS];
-        let tempPairs = {};
-        let failed = false;
+  function generateDraw() {
+    let attempts = 0;
+    while (attempts < 5000) {
+      attempts++;
+      let pool = [...PARTICIPANTS];
+      let res = {};
+      let fail = false;
 
-        for (let giver of PARTICIPANTS) {
-          let validTargets = pool.filter(p => p !== giver && PAST_2025[giver] !== p);
-          if (validTargets.length === 0) {
-            failed = true;
-            break;
-          }
-          let pick = validTargets[Math.floor(Math.random() * validTargets.length)];
-          tempPairs[giver] = pick;
-          pool = pool.filter(p => p !== pick);
-        }
-
-        if (!failed) return tempPairs;
+      for (let giver of PARTICIPANTS) {
+        let valid = pool.filter(p => p !== giver && EXCLUSIONS[giver] !== p);
+        if (valid.length === 0) { fail = true; break; }
+        let pick = valid[Math.floor(Math.random() * valid.length)];
+        res[giver] = pick;
+        pool = pool.filter(p => p !== pick);
       }
-      return null;
+      if (!fail) return res;
+    }
+    return null;
+  }
+
+  // Consistent draw state
+  let pairings = JSON.parse(localStorage.getItem(SEED_KEY));
+  if (!pairings) {
+    pairings = generateDraw();
+    localStorage.setItem(SEED_KEY, JSON.stringify(pairings));
+  }
+
+  // Detect current user from URL (e.g., ?user=Via)
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentUser = urlParams.get('user');
+
+  const banner = document.getElementById("userBanner");
+  if (currentUser && PARTICIPANTS.includes(currentUser)) {
+    banner.style.display = "block";
+    banner.textContent = `👋 Hello ${currentUser}! Tap your card below to unwrap your match.`;
+  }
+
+  const container = document.getElementById("listContainer");
+
+  PARTICIPANTS.forEach(name => {
+    const row = document.createElement("div");
+    row.className = "person-row";
+
+    const isMe = (currentUser && currentUser.toLowerCase() === name.toLowerCase());
+
+    if (isMe) {
+      row.classList.add("is-me");
+      row.innerHTML = `
+        <span class="person-name">${name}</span>
+        <span class="badge badge-tap" id="badge-${name}">🎁 Tap to Reveal</span>
+      `;
+      row.onclick = () => revealRecipient(name);
+    } else {
+      row.innerHTML = `
+        <span class="person-name">${name}</span>
+        <span class="badge badge-locked">🔒 Hidden</span>
+      `;
     }
 
-    // Load saved pairings or generate once so everyone gets the same draw
-    function init() {
-      const saved = localStorage.getItem("gingerbread_2026_draw");
-      if (saved) {
-        pairings = JSON.parse(saved);
-      } else {
-        pairings = generateDraw();
-        localStorage.setItem("gingerbread_2026_draw", JSON.stringify(pairings));
-      }
+    container.appendChild(row);
+  });
 
-      const select = document.getElementById("userSelect");
-      PARTICIPANTS.forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      });
-    }
+  function revealRecipient(name) {
+    const badge = document.getElementById(`badge-${name}`);
+    if (badge.classList.contains("badge-revealed")) return;
 
-    document.getElementById("userSelect").addEventListener("change", function(e) {
-      const section = document.getElementById("drawSection");
-      const box = document.getElementById("revealBox");
-      box.style.display = "none";
-      section.style.display = e.target.value ? "block" : "none";
+    badge.className = "badge badge-revealed";
+    badge.textContent = `drew ${pairings[name]}! 🎉`;
+
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { y: 0.6 }
     });
+  }
 
-    function revealPair() {
-      const selected = document.getElementById("userSelect").value;
-      if (!selected) return;
+  function toggleAdmin() {
+    const box = document.getElementById("adminBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+  }
 
-      const receiver = pairings[selected];
-      document.getElementById("receiverDisplay").textContent = receiver;
-      document.getElementById("revealBox").style.display = "block";
+  function unlockAdmin() {
+    const pin = document.getElementById("adminPin").value;
+    if (pin === "2026") {
+      document.getElementById("adminAuth").style.display = "none";
+      const adminLinks = document.getElementById("adminLinks");
+      adminLinks.style.display = "block";
 
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-    }
-
-    function hidePair() {
-      document.getElementById("revealBox").style.display = "none";
-      document.getElementById("userSelect").value = "";
-      document.getElementById("drawSection").style.display = "none";
-    }
-
-    function toggleAdmin() {
-      const panel = document.getElementById("adminPanel");
-      panel.style.display = panel.style.display === "block" ? "none" : "block";
-    }
-
-    function verifyAdmin() {
-      const pin = document.getElementById("adminPin").value;
-      if (pin === ADMIN_PIN) {
-        document.getElementById("adminAuth").style.display = "none";
-        document.getElementById("adminContent").style.display = "block";
-        renderMasterList();
-      } else {
-        alert("Incorrect PIN");
-      }
-    }
-
-    function renderMasterList() {
-      const list = document.getElementById("masterList");
+      const list = document.getElementById("linksList");
       list.innerHTML = "";
-      Object.keys(pairings).forEach(giver => {
-        const row = document.createElement("div");
-        row.className = "pair-row";
-        row.innerHTML = `<strong>${giver}</strong> <span>➔</span> <span style="color:#27ae60; font-weight:bold;">${pairings[giver]}</span>`;
-        list.appendChild(row);
+
+      const baseUrl = window.location.origin + window.location.pathname;
+
+      PARTICIPANTS.forEach(name => {
+        const link = `${baseUrl}?user=${encodeURIComponent(name)}`;
+        const waMsg = encodeURIComponent(`🎄 Gingerbread Gathering 2026: Hi ${name}, here is your private Secret Santa link! Tap to reveal who you got: ${link}`);
+        const waUrl = `https://api.whatsapp.com/send?text=${waMsg}`;
+
+        const item = document.createElement("div");
+        item.className = "share-row";
+        item.innerHTML = `
+          <span><strong>${name}</strong></span>
+          <a href="${waUrl}" target="_blank" class="btn-wa">Send WhatsApp</a>
+        `;
+        list.appendChild(item);
       });
+    } else {
+      alert("Incorrect PIN");
     }
-
-    function copyMasterList() {
-      let text = "🎄 Gingerbread Gathering 2026 Draw Records 🎄\\n";
-      Object.keys(pairings).forEach(giver => {
-        text += `${giver} drew ${pairings[giver]}\\n`;
-      });
-      navigator.clipboard.writeText(text);
-      alert("Master history copied to clipboard! Paste it in your private notes or WhatsApp.");
-    }
-
-    function rerunDraw() {
-      if (confirm("Are you sure you want to re-roll the entire Secret Santa?")) {
-        pairings = generateDraw();
-        localStorage.setItem("gingerbread_2026_draw", JSON.stringify(pairings));
-        renderMasterList();
-        hidePair();
-      }
-    }
-
-    init();
-  </script>
+  }
+</script>
 </body>
 </html>
