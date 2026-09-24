@@ -29,7 +29,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Falling Snow */
+    /* Falling Snow Animation */
     .snow {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -573,19 +573,26 @@
 
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    /* 
+       Testing Pairings Configured:
+       - Via ➔ Leara
+       - Leara ➔ Via
+       - All other 10 pairings strictly adhere to no self-picks & no 2025 repeats
+         (Pera != Merry, Niki != Elzie, Evelyn != Via, Gadi != Ching, Ching != Leara, Gimbs != Pera)
+    */
     const PAIRINGS_2026 = {
+      "Via": "Leara",
+      "Leara": "Via",
       "Pera": "Elzie",
-      "Via": "Rozabelle",
-      "Leara": "Pera",
-      "Rozabelle": "Via",
-      "Niki": "Gimbs",
+      "Rozabelle": "Gimbs",
+      "Niki": "Ching",
       "Evelyn": "Merry",
       "Gadi": "Lulong",
       "Ching": "Niki",
       "Merry": "Evelyn",
-      "Lulong": "Leara",
-      "Gimbs": "Ching",
-      "Elzie": "Gadi"
+      "Lulong": "Rozabelle",
+      "Gimbs": "Gadi",
+      "Elzie": "Pera"
     };
 
     const PARTICIPANTS = Object.keys(PAIRINGS_2026);
@@ -614,7 +621,6 @@
       unauthorizedScreen.style.display = "block";
     }
 
-    /* --- Wishlist Cloud Sync --- */
     async function loadMyWishlist() {
       if (!matchedUser) return;
       const { data, error } = await db
@@ -729,9 +735,6 @@
       return String(string).replace(/[&<>"']/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[s]);
     }
 
-    /* -------------------------------------------------------------
-       Smart Platform Routing (iOS Synthesizer + Android File Stream)
-       ------------------------------------------------------------- */
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
@@ -871,7 +874,6 @@
       document.getElementById("revealBox").style.display = "none";
     }
 
-    /* --- Organizer Panel Logic (Password: 071019) --- */
     function toggleAdmin() {
       const panel = document.getElementById("adminPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -923,9 +925,9 @@
     }
 
     function copyMasterHistory() {
-      let text = "🎄 Gingerbread Gathering 2026 Master Draw 🎄\\n\\n";
+      let text = "🎄 Gingerbread Gathering 2026 Master Draw 🎄\n\n";
       PARTICIPANTS.forEach(name => {
-        text += `${name} drew ${PAIRINGS_2026[name]}\\n`;
+        text += `${name} drew ${PAIRINGS_2026[name]}\n`;
       });
       navigator.clipboard.writeText(text);
       alert("Master list copied to clipboard! Save it to your notes for 2027.");
