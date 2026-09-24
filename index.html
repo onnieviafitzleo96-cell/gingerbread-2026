@@ -7,56 +7,52 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --bg-gradient: radial-gradient(circle at 50% 10%, #1e3c72 0%, #0f1b33 60%, #070d1a 100%);
-      --card-bg: rgba(255, 255, 255, 0.94);
       --primary-red: #c0392b;
       --pine-green: #27ae60;
-      --accent-gold: #d4af37;
-      --gold-dark: #b8860b;
-      --shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+      --gold: #f39c12;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      background: var(--bg-gradient);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #1e3c72 0%, #0b1d3a 80%);
       color: #2c3e50;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem 1rem;
+      padding: 1.5rem 1rem;
       position: relative;
       overflow-x: hidden;
     }
 
-    /* Falling Snow Animation */
+    /* Falling Snow */
     .snow {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
-      z-index: 1;
       background-image: 
-        radial-gradient(3px 3px at 20px 30px, rgba(255,255,255,0.9), transparent),
-        radial-gradient(4px 4px at 80px 120px, rgba(255,255,255,0.7), transparent),
-        radial-gradient(2px 2px at 150px 60px, rgba(255,255,255,0.8), transparent),
-        radial-gradient(3.5px 3.5px at 220px 190px, rgba(255,255,255,0.9), transparent);
-      background-size: 300px 300px;
-      animation: snowDrift 8s linear infinite;
+        radial-gradient(3px 3px at 20px 30px, #ffffff, transparent),
+        radial-gradient(4px 4px at 80px 120px, #ffffffdd, transparent),
+        radial-gradient(2px 2px at 150px 60px, #ffffff, transparent),
+        radial-gradient(3px 3px at 240px 200px, #ffffff, transparent);
+      background-size: 250px 250px;
+      animation: snowFall 7s linear infinite;
+      z-index: 1;
     }
-    @keyframes snowDrift {
+    @keyframes snowFall {
       0% { background-position: 0 0, 0 0, 0 0, 0 0; }
-      100% { background-position: 50px 300px, 90px 300px, 40px 300px, 120px 300px; }
+      100% { background-position: 40px 250px, 80px 250px, 30px 250px, 100px 250px; }
     }
 
-    /* Music Toggle */
+    /* Floating Music Pill */
     .music-btn {
       position: fixed;
       top: 1rem;
       right: 1rem;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
       color: #fff;
       padding: 0.5rem 0.9rem;
       border-radius: 50px;
@@ -67,136 +63,110 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.3s ease;
     }
-    .music-btn:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
 
-    /* Main Festive Card */
+    /* Clean Festive Card */
     .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      max-width: 480px;
+      background: rgba(255, 255, 255, 0.96);
+      max-width: 420px;
       width: 100%;
       border-radius: 28px;
       padding: 2.2rem 1.8rem;
-      box-shadow: var(--shadow);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
       position: relative;
       z-index: 2;
       text-align: center;
-      border: 3px solid rgba(212, 175, 55, 0.35);
+      border: 3px solid rgba(212, 175, 55, 0.4);
     }
-    .ribbon-tag {
+    .badge {
       display: inline-block;
-      background: linear-gradient(135deg, #c0392b, #962d22);
+      background: #c0392b;
       color: #fff;
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 1.5px;
       font-weight: 700;
-      padding: 0.3rem 1rem;
+      padding: 0.3rem 0.9rem;
       border-radius: 50px;
       margin-bottom: 0.8rem;
-      box-shadow: 0 4px 10px rgba(192, 57, 43, 0.3);
     }
     h1 {
       color: var(--primary-red);
-      font-size: 1.8rem;
+      font-size: 1.7rem;
       font-weight: 800;
       margin-bottom: 0.3rem;
-      letter-spacing: -0.5px;
     }
-    p.subtitle {
-      color: #555;
-      font-size: 0.92rem;
-      margin-bottom: 1.6rem;
-    }
-
-    /* Controls */
-    .selector-container {
-      margin-bottom: 1.5rem;
-      text-align: left;
-    }
-    label {
-      font-size: 0.82rem;
+    .user-greeting {
+      font-size: 1.15rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #7f8c8d;
-      margin-bottom: 0.4rem;
-      display: block;
+      color: #1a365d;
+      margin-top: 0.5rem;
     }
-    select {
-      width: 100%;
-      padding: 0.9rem 1rem;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #2c3e50;
-      border: 2px solid #e2e8f0;
-      background: #fff;
-      outline: none;
-      transition: border-color 0.2s;
+    .user-sub {
+      color: #666;
+      font-size: 0.9rem;
+      margin-top: 0.2rem;
+      margin-bottom: 1.5rem;
     }
-    select:focus { border-color: var(--primary-red); }
 
-    /* Interactive Unbox Zone */
+    /* Gift Box Unbox Animation */
     .gift-interactive {
-      background: linear-gradient(180deg, #fdfaf6, #f7f3ed);
+      background: #fdfaf6;
       border: 2px dashed #e2d7c5;
       border-radius: 20px;
-      padding: 1.8rem 1rem;
-      margin: 1.2rem 0;
-      position: relative;
+      padding: 2rem 1.2rem;
+      margin: 1rem 0;
     }
-    .gift-box {
-      font-size: 4.2rem;
-      cursor: pointer;
+    .gift-icon {
+      font-size: 4.5rem;
       display: inline-block;
-      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      animation: wobble 2s infinite ease-in-out;
       user-select: none;
     }
-    .gift-box:hover {
-      transform: scale(1.12) rotate(-6deg);
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-8deg) scale(1.05); }
+      75% { transform: rotate(8deg) scale(1.05); }
     }
-    .gift-hint {
-      font-size: 0.88rem;
-      color: #7f8c8d;
-      margin-top: 0.5rem;
-      font-weight: 500;
+    .btn-reveal {
+      display: block;
+      width: 100%;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: #fff;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 0.9rem;
+      border-radius: 50px;
+      cursor: pointer;
+      margin-top: 1.2rem;
+      box-shadow: 0 4px 15px rgba(192, 57, 43, 0.35);
     }
 
-    /* Secret Unwrapped Card */
-    .reveal-card {
+    /* Revealed Result Box */
+    .reveal-box {
       display: none;
       background: #fff;
-      border: 2px solid var(--accent-gold);
+      border: 2px solid var(--gold);
       border-radius: 18px;
       padding: 1.5rem 1rem;
-      margin-top: 1rem;
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
+      margin-top: 1.2rem;
+      animation: popIn 0.35s ease forwards;
     }
     @keyframes popIn {
-      from { opacity: 0; transform: scale(0.85); }
-      to { opacity: 1; transform: scale(1); }
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
-    .recipient-title {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888;
-      font-weight: 600;
-    }
-    .recipient-name {
-      font-size: 2.1rem;
+    .revealed-name {
+      font-size: 2.2rem;
       color: var(--pine-green);
       font-weight: 900;
-      margin: 0.35rem 0 0.8rem;
-      letter-spacing: -0.5px;
+      margin: 0.4rem 0 0.8rem;
     }
     .btn-hide {
-      background: #ecf0f1;
-      color: #555;
+      background: #edf2f7;
+      color: #4a5568;
       border: none;
       padding: 0.5rem 1.2rem;
       border-radius: 50px;
@@ -205,34 +175,34 @@
       cursor: pointer;
     }
 
-    /* Warning message for uninvited / empty params */
-    .notice-box {
-      background: #fff8e6;
-      border: 1px solid #ffeaa7;
-      color: #b7791f;
-      padding: 0.9rem;
-      border-radius: 12px;
-      font-size: 0.86rem;
+    /* Invalid / Missing URL State */
+    .invalid-box {
+      background: #fff5f5;
+      border: 1px solid #feb2b2;
+      color: #c53030;
+      padding: 1rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
       line-height: 1.4;
       margin-top: 1rem;
     }
 
-    /* Admin Footer & Drawer */
+    /* Admin Footer */
     .admin-toggle {
       margin-top: 1.8rem;
-      font-size: 0.8rem;
-      color: #95a5a6;
+      font-size: 0.78rem;
+      color: #a0aec0;
       cursor: pointer;
       text-decoration: underline;
     }
     .admin-panel {
       display: none;
-      margin-top: 1.2rem;
-      background: #f8f9fa;
+      margin-top: 1rem;
+      background: #f7fafc;
       border-radius: 16px;
       padding: 1.2rem;
       text-align: left;
-      border: 1px solid #eaeaea;
+      border: 1px solid #e2e8f0;
     }
     .admin-nav {
       display: flex;
@@ -241,32 +211,32 @@
     }
     .admin-nav button {
       flex: 1;
-      padding: 0.4rem;
+      padding: 0.45rem;
       font-size: 0.75rem;
-      border: 1px solid #ccc;
+      border: 1px solid #cbd5e0;
       background: #fff;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
     }
     .admin-nav button.active {
-      background: #2c3e50;
+      background: #2d3748;
       color: #fff;
-      border-color: #2c3e50;
+      border-color: #2d3748;
     }
     .record-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0.35rem 0;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #edf2f7;
       font-size: 0.85rem;
     }
     .btn-wa {
       background: #25d366;
       color: #fff;
       text-decoration: none;
-      padding: 0.3rem 0.6rem;
+      padding: 0.28rem 0.6rem;
       border-radius: 6px;
       font-size: 0.75rem;
       font-weight: bold;
@@ -288,41 +258,44 @@
   <div class="snow"></div>
 
   <!-- Music Toggle Button -->
-  <button class="music-btn" id="musicBtn" onclick="toggleChristmasMusic()">
+  <button class="music-btn" onclick="toggleMusic()">
     <span id="musicIcon">🎵</span> <span id="musicText">Play Music</span>
   </button>
 
+  <!-- Audio Element with Music Box Christmas Carol -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="https://upload.wikimedia.org/wikipedia/commons/e/e8/We_Wish_You_A_Merry_Christmas_-_music_box.ogg" type="audio/ogg">
+    <source src="https://orangefreesounds.com/wp-content/uploads/2020/12/We-wish-you-a-merry-christmas-music-box.mp3" type="audio/mpeg">
+  </audio>
+
   <div class="card">
-    <div class="ribbon-tag">Secret Santa 2026</div>
+    <div class="badge">Secret Santa 2026</div>
     <h1>Gingerbread's Gathering</h1>
-    <p class="subtitle">Tap your present to see who you are gifting this Christmas!</p>
 
-    <!-- Dropdown (Locked if user URL is provided) -->
-    <div class="selector-container">
-      <label for="userSelect">Your Name</label>
-      <select id="userSelect" onchange="handleDropdownChange()">
-        <option value="">-- Select Your Name --</option>
-      </select>
-    </div>
+    <!-- 1. Participant View (When opened via ?user=Name) -->
+    <div id="participantScreen" style="display:none;">
+      <div class="user-greeting" id="userNameGreeting">Hi there!</div>
+      <p class="user-sub">Here is your Secret Santa gift draw.</p>
 
-    <!-- Notice if visiting without specific private link -->
-    <div id="noticeMsg" class="notice-box" style="display:none;">
-      🔒 Please open your unique WhatsApp Secret Santa invite link to reveal your recipient.
-    </div>
+      <div class="gift-interactive">
+        <div class="gift-icon" onclick="revealMatch()">🎁</div>
+        <button class="btn-reveal" onclick="revealMatch()">🎁 Tap to Reveal</button>
 
-    <!-- Unwrapping Area -->
-    <div id="interactiveArea" class="gift-interactive" style="display:none;">
-      <div class="gift-box" onclick="unboxGift()">🎁</div>
-      <p class="gift-hint">Tap the gift box to unwrap!</p>
-
-      <div id="revealBox" class="reveal-card">
-        <div class="recipient-title">You are the Secret Santa for</div>
-        <div class="recipient-name" id="recipientDisplay">???</div>
-        <button class="btn-hide" onclick="hideRecipient()">🔒 Hide & Keep Secret</button>
+        <div id="revealBox" class="reveal-box">
+          <p style="font-size:0.85rem; color:#777; text-transform:uppercase; letter-spacing:1px; font-weight:600;">You are gifting:</p>
+          <div class="revealed-name" id="matchNameDisplay">???</div>
+          <button class="btn-hide" onclick="hideMatch()">🔒 Hide & Keep Secret</button>
+        </div>
       </div>
     </div>
 
-    <!-- Organizer Control -->
+    <!-- 2. Screen when visiting raw homepage without a personal link -->
+    <div id="unauthorizedScreen" style="display:none;" class="invalid-box">
+      🎅 <strong>Private Invite Only</strong><br>
+      Please tap the private link sent to your WhatsApp to view your draw!
+    </div>
+
+    <!-- 3. Organizer Drawer -->
     <div class="admin-toggle" onclick="toggleAdmin()">⚙️ Organizer Control Panel</div>
 
     <div id="adminPanel" class="admin-panel">
@@ -335,12 +308,12 @@
       <div id="adminBody" style="display:none;">
         <div class="admin-nav">
           <button class="active" id="tabMasterBtn" onclick="switchAdminTab('master')">📋 Master List (2026)</button>
-          <button id="tabShareBtn" onclick="switchAdminTab('share')">📲 Share Links</button>
+          <button id="tabShareBtn" onclick="switchAdminTab('share')">📲 WhatsApp Links</button>
         </div>
 
         <div id="tabMasterView">
           <div id="masterListContent"></div>
-          <button class="btn-copy" onclick="copyMasterHistory()">📋 Copy Master Record to Clipboard</button>
+          <button class="btn-copy" onclick="copyMasterHistory()">📋 Copy Master Record</button>
         </div>
 
         <div id="tabShareView" style="display:none;">
@@ -351,7 +324,7 @@
   </div>
 
   <script>
-    // Exact 2026 Matchings (Locked so all phones get the exact same results without repeats)
+    // Exact locked 2026 pairings (no repeats from 2025)
     const PAIRINGS_2026 = {
       "Pera": "Elzie",
       "Via": "Rozabelle",
@@ -369,164 +342,69 @@
 
     const PARTICIPANTS = Object.keys(PAIRINGS_2026);
 
-    // Read ?user=Name
+    // Read ?user=Name from URL
     const params = new URLSearchParams(window.location.search);
-    const assignedUser = params.get('user');
+    const rawUser = params.get('user');
 
-    const select = document.getElementById("userSelect");
-    const interactiveArea = document.getElementById("interactiveArea");
-    const noticeMsg = document.getElementById("noticeMsg");
+    const participantScreen = document.getElementById("participantScreen");
+    const unauthorizedScreen = document.getElementById("unauthorizedScreen");
 
-    // Populate dropdown
-    PARTICIPANTS.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      select.appendChild(opt);
-    });
+    let matchedUser = null;
+    if (rawUser) {
+      matchedUser = PARTICIPANTS.find(p => p.toLowerCase() === rawUser.trim().toLowerCase());
+    }
 
-    // Enforce lock if private link is used
-    if (assignedUser && PARTICIPANTS.some(p => p.toLowerCase() === assignedUser.toLowerCase())) {
-      const match = PARTICIPANTS.find(p => p.toLowerCase() === assignedUser.toLowerCase());
-      select.value = match;
-      select.disabled = true; // Lock dropdown so they cannot switch to other names!
-      interactiveArea.style.display = "block";
+    if (matchedUser) {
+      participantScreen.style.display = "block";
+      document.getElementById("userNameGreeting").textContent = `👋 Hi ${matchedUser}!`;
     } else {
-      // If opened with no param, let them choose only if they are the host or warn them
-      noticeMsg.style.display = "block";
+      unauthorizedScreen.style.display = "block";
     }
 
-    function handleDropdownChange() {
-      if (!select.disabled) {
-        if (select.value) {
-          interactiveArea.style.display = "block";
-          document.getElementById("revealBox").style.display = "none";
-        } else {
-          interactiveArea.style.display = "none";
-        }
-      }
-    }
+    function revealMatch() {
+      if (!matchedUser) return;
 
-    function unboxGift() {
-      const currentUser = select.value;
-      if (!currentUser) return;
+      // Start music automatically on user interaction if not already playing
+      startMusicSilently();
 
-      const receiver = PAIRINGS_2026[currentUser];
-      document.getElementById("recipientDisplay").textContent = receiver;
+      const receiver = PAIRINGS_2026[matchedUser];
+      document.getElementById("matchNameDisplay").textContent = receiver;
       document.getElementById("revealBox").style.display = "block";
 
-      playJingleSound();
-
       confetti({
-        particleCount: 90,
+        particleCount: 85,
         spread: 70,
         origin: { y: 0.6 }
       });
     }
 
-    function hideRecipient() {
+    function hideMatch() {
       document.getElementById("revealBox").style.display = "none";
     }
 
-    /* --- Audio Synthesis (No external files needed) --- */
-    let audioCtx = null;
-    let isPlaying = false;
-    let musicTimeout = null;
+    /* --- Music Controls --- */
+    const music = document.getElementById("bgMusic");
+    music.volume = 0.5;
 
-    // "We Wish You a Merry Christmas" Melody Notes (Frequency in Hz)
-    const melody = [
-      { f: 261.63, d: 0.4 }, // D
-      { f: 349.23, d: 0.4 }, // G
-      { f: 349.23, d: 0.2 }, // G
-      { f: 392.00, d: 0.2 }, // A
-      { f: 349.23, d: 0.2 }, // G
-      { f: 329.63, d: 0.2 }, // F#
-      { f: 293.66, d: 0.4 }, // E
-      { f: 293.66, d: 0.4 }, // E
-      { f: 293.66, d: 0.4 }, // E
-      { f: 392.00, d: 0.4 }, // A
-      { f: 392.00, d: 0.2 }, // A
-      { f: 440.00, d: 0.2 }, // B
-      { f: 392.00, d: 0.2 }, // A
-      { f: 349.23, d: 0.2 }, // G
-      { f: 329.63, d: 0.4 }, // F#
-      { f: 261.63, d: 0.4 }, // D
-      { f: 261.63, d: 0.4 }, // D
-      { f: 440.00, d: 0.4 }, // B
-      { f: 440.00, d: 0.2 }, // B
-      { f: 493.88, d: 0.2 }, // C
-      { f: 440.00, d: 0.2 }, // B
-      { f: 392.00, d: 0.2 }, // A
-      { f: 349.23, d: 0.4 }, // G
-      { f: 293.66, d: 0.4 }, // E
-      { f: 261.63, d: 0.2 }, // D
-      { f: 261.63, d: 0.2 }, // D
-      { f: 293.66, d: 0.4 }, // E
-      { f: 392.00, d: 0.4 }, // A
-      { f: 329.63, d: 0.4 }, // F#
-      { f: 349.23, d: 0.8 }  // G
-    ];
-
-    function toggleChristmasMusic() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (isPlaying) {
-        isPlaying = false;
-        clearTimeout(musicTimeout);
-        document.getElementById("musicIcon").textContent = "🎵";
-        document.getElementById("musicText").textContent = "Play Music";
-      } else {
-        isPlaying = true;
+    function toggleMusic() {
+      if (music.paused) {
+        music.play();
         document.getElementById("musicIcon").textContent = "⏸️";
         document.getElementById("musicText").textContent = "Pause";
-        playMelody(0);
+      } else {
+        music.pause();
+        document.getElementById("musicIcon").textContent = "🎵";
+        document.getElementById("musicText").textContent = "Play Music";
       }
     }
 
-    function playMelody(noteIdx) {
-      if (!isPlaying || !audioCtx) return;
-      if (noteIdx >= melody.length) noteIdx = 0;
-
-      const note = melody[noteIdx];
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      // Soft music-box chime wave
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
-
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + note.d);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.start();
-      osc.stop(audioCtx.currentTime + note.d);
-
-      musicTimeout = setTimeout(() => {
-        playMelody(noteIdx + 1);
-      }, note.d * 1000);
-    }
-
-    function playJingleSound() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function startMusicSilently() {
+      if (music.paused) {
+        music.play().then(() => {
+          document.getElementById("musicIcon").textContent = "⏸️";
+          document.getElementById("musicText").textContent = "Pause";
+        }).catch(() => {});
       }
-      const chimes = [523.25, 659.25, 783.99, 1046.50];
-      chimes.forEach((f, i) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "triangle";
-        osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.08);
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime + i * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 0.5);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(audioCtx.currentTime + i * 0.08);
-        osc.stop(audioCtx.currentTime + i * 0.08 + 0.5);
-      });
     }
 
     /* --- Organizer Panel Logic --- */
@@ -570,9 +448,9 @@
         mRow.innerHTML = `<strong>${giver}</strong> ➔ <span style="color:#27ae60; font-weight:bold;">${rec}</span>`;
         masterBox.appendChild(mRow);
 
-        // Share Row
+        // Share Link Row
         const link = `${baseUrl}?user=${encodeURIComponent(giver)}`;
-        const waMsg = encodeURIComponent(`🎄 Gingerbread Gathering 2026: Hi ${giver}, here is your private Secret Santa link! Tap to reveal who you got: ${link}`);
+        const waMsg = encodeURIComponent(`🎄 Gingerbread Gathering 2026: Hi ${giver}, here is your Secret Santa invite! Tap to see who you got: ${link}`);
         const sRow = document.createElement("div");
         sRow.className = "record-row";
         sRow.innerHTML = `<span><strong>${giver}</strong></span> <a href="https://api.whatsapp.com/send?text=${waMsg}" target="_blank" class="btn-wa">Send WhatsApp</a>`;
@@ -586,7 +464,7 @@
         text += `${name} drew ${PAIRINGS_2026[name]}\\n`;
       });
       navigator.clipboard.writeText(text);
-      alert("Master pairings copied! Paste into your notes to keep for 2027.");
+      alert("Master list copied to clipboard! Save it to your notes for 2027.");
     }
   </script>
 </body>
