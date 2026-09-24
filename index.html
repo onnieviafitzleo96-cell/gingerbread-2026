@@ -3,135 +3,264 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gingerbread's Gathering 2026</title>
+  <title>🎄 Gingerbread's Gathering 2026 🎅</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --card-bg: #ffffff;
-      --text: #2c3e50;
-      --primary: #3182ce;
-      --accent: #27ae60;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e3c72 0%, #0f1b33 60%, #070d1a 100%);
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --primary-red: #c0392b;
+      --pine-green: #27ae60;
+      --accent-gold: #d4af37;
+      --gold-dark: #b8860b;
+      --shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f0f2f5;
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      padding: 1.5rem 1rem;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: var(--bg-gradient);
+      color: #2c3e50;
       min-height: 100vh;
-    }
-    .wrapper {
-      background: var(--card-bg);
-      max-width: 440px;
-      width: 100%;
-      border-radius: 24px;
-      padding: 1.8rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-    }
-    .header-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #1a202c;
-      margin-bottom: 0.25rem;
-    }
-    .header-sub {
-      font-size: 0.88rem;
-      color: #718096;
-      margin-bottom: 1.25rem;
-    }
-    .active-user-banner {
-      background: #ebf8ff;
-      border: 1px solid #bee3f8;
-      color: #2b6cb0;
-      padding: 0.75rem 1rem;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-    .draw-list {
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
-      margin-bottom: 1.5rem;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow-x: hidden;
     }
-    .person-row {
+
+    /* Falling Snow Animation */
+    .snow {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      background-image: 
+        radial-gradient(3px 3px at 20px 30px, rgba(255,255,255,0.9), transparent),
+        radial-gradient(4px 4px at 80px 120px, rgba(255,255,255,0.7), transparent),
+        radial-gradient(2px 2px at 150px 60px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(3.5px 3.5px at 220px 190px, rgba(255,255,255,0.9), transparent);
+      background-size: 300px 300px;
+      animation: snowDrift 8s linear infinite;
+    }
+    @keyframes snowDrift {
+      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      100% { background-position: 50px 300px, 90px 300px, 40px 300px, 120px 300px; }
+    }
+
+    /* Music Toggle */
+    .music-btn {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 0.5rem 0.9rem;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 10;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: #fafafa;
-      border: 1px solid #eef0f2;
-      padding: 0.85rem 1.1rem;
-      border-radius: 14px;
-      transition: all 0.2s ease;
+      gap: 6px;
+      transition: all 0.3s ease;
     }
-    .person-row.is-me {
-      background: #fff;
-      border: 2px solid var(--primary);
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(49, 130, 206, 0.15);
-    }
-    .person-name {
-      font-weight: 600;
-      font-size: 0.98rem;
-      color: #2d3748;
-    }
-    .badge {
-      font-size: 0.82rem;
-      padding: 0.35rem 0.75rem;
-      border-radius: 8px;
-      font-weight: 600;
-    }
-    .badge-locked { background: #edf2f7; color: #a0aec0; }
-    .badge-tap { background: var(--primary); color: #fff; }
-    .badge-revealed { background: #c6f6d5; color: #22543d; font-weight: 700; }
+    .music-btn:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
 
-    /* Admin Section */
-    .admin-toggle {
+    /* Main Festive Card */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      max-width: 480px;
+      width: 100%;
+      border-radius: 28px;
+      padding: 2.2rem 1.8rem;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 2;
       text-align: center;
-      margin-top: 1.5rem;
-      font-size: 0.8rem;
-      color: #a0aec0;
+      border: 3px solid rgba(212, 175, 55, 0.35);
+    }
+    .ribbon-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #c0392b, #962d22);
+      color: #fff;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      padding: 0.3rem 1rem;
+      border-radius: 50px;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 4px 10px rgba(192, 57, 43, 0.3);
+    }
+    h1 {
+      color: var(--primary-red);
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+      letter-spacing: -0.5px;
+    }
+    p.subtitle {
+      color: #555;
+      font-size: 0.92rem;
+      margin-bottom: 1.6rem;
+    }
+
+    /* Controls */
+    .selector-container {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #7f8c8d;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+    select {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #2c3e50;
+      border: 2px solid #e2e8f0;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    select:focus { border-color: var(--primary-red); }
+
+    /* Interactive Unbox Zone */
+    .gift-interactive {
+      background: linear-gradient(180deg, #fdfaf6, #f7f3ed);
+      border: 2px dashed #e2d7c5;
+      border-radius: 20px;
+      padding: 1.8rem 1rem;
+      margin: 1.2rem 0;
+      position: relative;
+    }
+    .gift-box {
+      font-size: 4.2rem;
+      cursor: pointer;
+      display: inline-block;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      user-select: none;
+    }
+    .gift-box:hover {
+      transform: scale(1.12) rotate(-6deg);
+    }
+    .gift-hint {
+      font-size: 0.88rem;
+      color: #7f8c8d;
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* Secret Unwrapped Card */
+    .reveal-card {
+      display: none;
+      background: #fff;
+      border: 2px solid var(--accent-gold);
+      border-radius: 18px;
+      padding: 1.5rem 1rem;
+      margin-top: 1rem;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .recipient-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      font-weight: 600;
+    }
+    .recipient-name {
+      font-size: 2.1rem;
+      color: var(--pine-green);
+      font-weight: 900;
+      margin: 0.35rem 0 0.8rem;
+      letter-spacing: -0.5px;
+    }
+    .btn-hide {
+      background: #ecf0f1;
+      color: #555;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
       cursor: pointer;
     }
-    .admin-box {
-      display: none;
+
+    /* Warning message for uninvited / empty params */
+    .notice-box {
+      background: #fff8e6;
+      border: 1px solid #ffeaa7;
+      color: #b7791f;
+      padding: 0.9rem;
+      border-radius: 12px;
+      font-size: 0.86rem;
+      line-height: 1.4;
       margin-top: 1rem;
+    }
+
+    /* Admin Footer & Drawer */
+    .admin-toggle {
+      margin-top: 1.8rem;
+      font-size: 0.8rem;
+      color: #95a5a6;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .admin-panel {
+      display: none;
+      margin-top: 1.2rem;
+      background: #f8f9fa;
+      border-radius: 16px;
       padding: 1.2rem;
-      background: #f7fafc;
-      border-radius: 14px;
-      border: 1px solid #e2e8f0;
-      font-size: 0.85rem;
+      text-align: left;
+      border: 1px solid #eaeaea;
     }
-    .admin-tabs {
+    .admin-nav {
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      gap: 6px;
+      margin-bottom: 0.8rem;
     }
-    .admin-tab-btn {
+    .admin-nav button {
       flex: 1;
       padding: 0.4rem;
       font-size: 0.75rem;
-      border-radius: 6px;
-      border: 1px solid #cbd5e0;
+      border: 1px solid #ccc;
       background: #fff;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
     }
-    .admin-tab-btn.active {
-      background: #2d3748;
+    .admin-nav button.active {
+      background: #2c3e50;
       color: #fff;
-      border-color: #2d3748;
+      border-color: #2c3e50;
     }
-    .share-row, .master-row {
+    .record-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0.35rem 0;
-      border-bottom: 1px solid #edf2f7;
+      border-bottom: 1px solid #eee;
+      font-size: 0.85rem;
     }
     .btn-wa {
       background: #25d366;
@@ -144,180 +273,321 @@
     }
     .btn-copy {
       width: 100%;
-      background: #2b6cb0;
+      background: var(--pine-green);
       color: #fff;
       border: none;
-      padding: 0.6rem;
+      padding: 0.65rem;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 0.75rem;
+      margin-top: 0.8rem;
     }
   </style>
 </head>
 <body>
+  <div class="snow"></div>
 
-<div class="wrapper">
-  <div class="header-title">Gingerbread's Gathering 2026</div>
-  <div class="header-sub">Christmas Exchange Gifts</div>
+  <!-- Music Toggle Button -->
+  <button class="music-btn" id="musicBtn" onclick="toggleChristmasMusic()">
+    <span id="musicIcon">🎵</span> <span id="musicText">Play Music</span>
+  </button>
 
-  <div id="userBanner" class="active-user-banner" style="display:none;"></div>
+  <div class="card">
+    <div class="ribbon-tag">Secret Santa 2026</div>
+    <h1>Gingerbread's Gathering</h1>
+    <p class="subtitle">Tap your present to see who you are gifting this Christmas!</p>
 
-  <!-- Normal View (Locked for Participants) -->
-  <div class="draw-list" id="listContainer"></div>
-
-  <!-- Organizer Footer Trigger -->
-  <div class="admin-toggle" onclick="toggleAdmin()">⚙️ Organizer Control Panel</div>
-
-  <div class="admin-box" id="adminBox">
-    <div id="adminAuth">
-      <input type="password" id="adminPin" placeholder="Organizer PIN (2026)" style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid #cbd5e0; border-radius:6px;" />
-      <button onclick="unlockAdmin()" style="width:100%; padding:0.5rem; background:#3182ce; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Unlock Organizer View</button>
+    <!-- Dropdown (Locked if user URL is provided) -->
+    <div class="selector-container">
+      <label for="userSelect">Your Name</label>
+      <select id="userSelect" onchange="handleDropdownChange()">
+        <option value="">-- Select Your Name --</option>
+      </select>
     </div>
 
-    <div id="adminDashboard" style="display:none;">
-      <div class="admin-tabs">
-        <button class="admin-tab-btn active" id="tabMasterBtn" onclick="switchTab('master')">👀 Master List (All)</button>
-        <button class="admin-tab-btn" id="tabShareBtn" onclick="switchTab('share')">📲 WhatsApp Links</button>
+    <!-- Notice if visiting without specific private link -->
+    <div id="noticeMsg" class="notice-box" style="display:none;">
+      🔒 Please open your unique WhatsApp Secret Santa invite link to reveal your recipient.
+    </div>
+
+    <!-- Unwrapping Area -->
+    <div id="interactiveArea" class="gift-interactive" style="display:none;">
+      <div class="gift-box" onclick="unboxGift()">🎁</div>
+      <p class="gift-hint">Tap the gift box to unwrap!</p>
+
+      <div id="revealBox" class="reveal-card">
+        <div class="recipient-title">You are the Secret Santa for</div>
+        <div class="recipient-name" id="recipientDisplay">???</div>
+        <button class="btn-hide" onclick="hideRecipient()">🔒 Hide & Keep Secret</button>
+      </div>
+    </div>
+
+    <!-- Organizer Control -->
+    <div class="admin-toggle" onclick="toggleAdmin()">⚙️ Organizer Control Panel</div>
+
+    <div id="adminPanel" class="admin-panel">
+      <div id="adminAuth">
+        <p style="font-size:0.8rem; margin-bottom:0.5rem; color:#666;">Enter Organizer PIN:</p>
+        <input type="password" id="adminPin" placeholder="PIN (2026)" style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid #ccc; border-radius:6px;" />
+        <button onclick="unlockAdmin()" style="width:100%; padding:0.55rem; background:var(--primary-red); color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Unlock Master Records</button>
       </div>
 
-      <!-- Tab 1: Full View for Organizer Only -->
-      <div id="tabMaster">
-        <div id="masterListContent"></div>
-        <button class="btn-copy" onclick="copyMasterHistory()">📋 Copy 2026 Draw to Clipboard</button>
-      </div>
+      <div id="adminBody" style="display:none;">
+        <div class="admin-nav">
+          <button class="active" id="tabMasterBtn" onclick="switchAdminTab('master')">📋 Master List (2026)</button>
+          <button id="tabShareBtn" onclick="switchAdminTab('share')">📲 Share Links</button>
+        </div>
 
-      <!-- Tab 2: Individual Links to send -->
-      <div id="tabShare" style="display:none;">
-        <div id="shareListContent"></div>
+        <div id="tabMasterView">
+          <div id="masterListContent"></div>
+          <button class="btn-copy" onclick="copyMasterHistory()">📋 Copy Master Record to Clipboard</button>
+        </div>
+
+        <div id="tabShareView" style="display:none;">
+          <div id="shareListContent"></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-  // Locked 2026 Pairings (None from 2025 repeated, no self-picks)
-  const PAIRINGS_2026 = {
-    "Pera": "Elzie",
-    "Via": "Rozabelle",
-    "Leara": "Pera",
-    "Rozabelle": "Via",
-    "Niki": "Gimbo",
-    "Evelyn": "Merry",
-    "Gadi": "Lulong",
-    "Ching": "Niki",
-    "Merry": "Evelyn",
-    "Lulong": "Leara",
-    "Gimbs": "Ching",
-    "Elzie": "Gadi"
-  };
+  <script>
+    // Exact 2026 Matchings (Locked so all phones get the exact same results without repeats)
+    const PAIRINGS_2026 = {
+      "Pera": "Elzie",
+      "Via": "Rozabelle",
+      "Leara": "Pera",
+      "Rozabelle": "Via",
+      "Niki": "Gimbs",
+      "Evelyn": "Merry",
+      "Gadi": "Lulong",
+      "Ching": "Niki",
+      "Merry": "Evelyn",
+      "Lulong": "Leara",
+      "Gimbs": "Ching",
+      "Elzie": "Gadi"
+    };
 
-  const PARTICIPANTS = Object.keys(PAIRINGS_2026);
+    const PARTICIPANTS = Object.keys(PAIRINGS_2026);
 
-  // Check if link has ?user=Name
-  const urlParams = new URLSearchParams(window.location.search);
-  const currentUser = urlParams.get('user');
+    // Read ?user=Name
+    const params = new URLSearchParams(window.location.search);
+    const assignedUser = params.get('user');
 
-  const banner = document.getElementById("userBanner");
-  if (currentUser && PARTICIPANTS.some(p => p.toLowerCase() === currentUser.toLowerCase())) {
-    const matchedName = PARTICIPANTS.find(p => p.toLowerCase() === currentUser.toLowerCase());
-    banner.style.display = "block";
-    banner.textContent = `👋 Hello ${matchedName}! Tap your card below to unwrap.`;
-  }
+    const select = document.getElementById("userSelect");
+    const interactiveArea = document.getElementById("interactiveArea");
+    const noticeMsg = document.getElementById("noticeMsg");
 
-  // Render main screen
-  const container = document.getElementById("listContainer");
-  PARTICIPANTS.forEach(name => {
-    const row = document.createElement("div");
-    row.className = "person-row";
-
-    const isMe = currentUser && (currentUser.toLowerCase() === name.toLowerCase());
-
-    if (isMe) {
-      row.classList.add("is-me");
-      row.innerHTML = `
-        <span class="person-name">${name}</span>
-        <span class="badge badge-tap" id="badge-${name}">🎁 Tap to Reveal</span>
-      `;
-      row.onclick = () => revealCard(name);
-    } else {
-      row.innerHTML = `
-        <span class="person-name">${name}</span>
-        <span class="badge badge-locked">🔒 Hidden</span>
-      `;
-    }
-    container.appendChild(row);
-  });
-
-  function revealCard(name) {
-    const badge = document.getElementById(`badge-${name}`);
-    if (badge.classList.contains("badge-revealed")) return;
-
-    badge.className = "badge badge-revealed";
-    badge.textContent = `drew ${PAIRINGS_2026[name]}! 🎁`;
-
-    confetti({ particleCount: 75, spread: 60, origin: { y: 0.6 } });
-  }
-
-  // Admin controls
-  function toggleAdmin() {
-    const box = document.getElementById("adminBox");
-    box.style.display = box.style.display === "block" ? "none" : "block";
-  }
-
-  function unlockAdmin() {
-    const pin = document.getElementById("adminPin").value;
-    if (pin === "2026") {
-      document.getElementById("adminAuth").style.display = "none";
-      document.getElementById("adminDashboard").style.display = "block";
-      renderOrganizerTabs();
-    } else {
-      alert("Incorrect PIN");
-    }
-  }
-
-  function switchTab(tab) {
-    document.getElementById("tabMaster").style.display = (tab === 'master') ? 'block' : 'none';
-    document.getElementById("tabShare").style.display = (tab === 'share') ? 'block' : 'none';
-    document.getElementById("tabMasterBtn").classList.toggle('active', tab === 'master');
-    document.getElementById("tabShareBtn").classList.toggle('active', tab === 'share');
-  }
-
-  function renderOrganizerTabs() {
-    const masterContainer = document.getElementById("masterListContent");
-    const shareContainer = document.getElementById("shareListContent");
-    const baseUrl = window.location.origin + window.location.pathname;
-
-    masterContainer.innerHTML = "";
-    shareContainer.innerHTML = "";
-
-    PARTICIPANTS.forEach(giver => {
-      const recipient = PAIRINGS_2026[giver];
-
-      // Tab 1: Organizer View
-      const mRow = document.createElement("div");
-      mRow.className = "master-row";
-      mRow.innerHTML = `<span><strong>${giver}</strong></span> <span>➔</span> <span style="color:#27ae60; font-weight:bold;">${recipient}</span>`;
-      masterContainer.appendChild(mRow);
-
-      // Tab 2: WhatsApp Share links
-      const link = `${baseUrl}?user=${encodeURIComponent(giver)}`;
-      const waMsg = encodeURIComponent(`🎄 Gingerbread Gathering 2026: Hi ${giver}, here is your private Secret Santa link! Tap to reveal who you got: ${link}`);
-      const sRow = document.createElement("div");
-      sRow.className = "share-row";
-      sRow.innerHTML = `<span><strong>${giver}</strong></span> <a href="https://api.whatsapp.com/send?text=${waMsg}" target="_blank" class="btn-wa">Send WA</a>`;
-      shareContainer.appendChild(sRow);
-    });
-  }
-
-  function copyMasterHistory() {
-    let text = "🎄 Gingerbread Gathering 2026 — Master Draw 🎄\\n\\n";
+    // Populate dropdown
     PARTICIPANTS.forEach(name => {
-      text += `${name} drew ${PAIRINGS_2026[name]}\\n`;
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
     });
-    navigator.clipboard.writeText(text);
-    alert("Copied entire master draw to clipboard! You can paste and save it into your Notes app.");
-  }
-</script>
+
+    // Enforce lock if private link is used
+    if (assignedUser && PARTICIPANTS.some(p => p.toLowerCase() === assignedUser.toLowerCase())) {
+      const match = PARTICIPANTS.find(p => p.toLowerCase() === assignedUser.toLowerCase());
+      select.value = match;
+      select.disabled = true; // Lock dropdown so they cannot switch to other names!
+      interactiveArea.style.display = "block";
+    } else {
+      // If opened with no param, let them choose only if they are the host or warn them
+      noticeMsg.style.display = "block";
+    }
+
+    function handleDropdownChange() {
+      if (!select.disabled) {
+        if (select.value) {
+          interactiveArea.style.display = "block";
+          document.getElementById("revealBox").style.display = "none";
+        } else {
+          interactiveArea.style.display = "none";
+        }
+      }
+    }
+
+    function unboxGift() {
+      const currentUser = select.value;
+      if (!currentUser) return;
+
+      const receiver = PAIRINGS_2026[currentUser];
+      document.getElementById("recipientDisplay").textContent = receiver;
+      document.getElementById("revealBox").style.display = "block";
+
+      playJingleSound();
+
+      confetti({
+        particleCount: 90,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+
+    function hideRecipient() {
+      document.getElementById("revealBox").style.display = "none";
+    }
+
+    /* --- Audio Synthesis (No external files needed) --- */
+    let audioCtx = null;
+    let isPlaying = false;
+    let musicTimeout = null;
+
+    // "We Wish You a Merry Christmas" Melody Notes (Frequency in Hz)
+    const melody = [
+      { f: 261.63, d: 0.4 }, // D
+      { f: 349.23, d: 0.4 }, // G
+      { f: 349.23, d: 0.2 }, // G
+      { f: 392.00, d: 0.2 }, // A
+      { f: 349.23, d: 0.2 }, // G
+      { f: 329.63, d: 0.2 }, // F#
+      { f: 293.66, d: 0.4 }, // E
+      { f: 293.66, d: 0.4 }, // E
+      { f: 293.66, d: 0.4 }, // E
+      { f: 392.00, d: 0.4 }, // A
+      { f: 392.00, d: 0.2 }, // A
+      { f: 440.00, d: 0.2 }, // B
+      { f: 392.00, d: 0.2 }, // A
+      { f: 349.23, d: 0.2 }, // G
+      { f: 329.63, d: 0.4 }, // F#
+      { f: 261.63, d: 0.4 }, // D
+      { f: 261.63, d: 0.4 }, // D
+      { f: 440.00, d: 0.4 }, // B
+      { f: 440.00, d: 0.2 }, // B
+      { f: 493.88, d: 0.2 }, // C
+      { f: 440.00, d: 0.2 }, // B
+      { f: 392.00, d: 0.2 }, // A
+      { f: 349.23, d: 0.4 }, // G
+      { f: 293.66, d: 0.4 }, // E
+      { f: 261.63, d: 0.2 }, // D
+      { f: 261.63, d: 0.2 }, // D
+      { f: 293.66, d: 0.4 }, // E
+      { f: 392.00, d: 0.4 }, // A
+      { f: 329.63, d: 0.4 }, // F#
+      { f: 349.23, d: 0.8 }  // G
+    ];
+
+    function toggleChristmasMusic() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (isPlaying) {
+        isPlaying = false;
+        clearTimeout(musicTimeout);
+        document.getElementById("musicIcon").textContent = "🎵";
+        document.getElementById("musicText").textContent = "Play Music";
+      } else {
+        isPlaying = true;
+        document.getElementById("musicIcon").textContent = "⏸️";
+        document.getElementById("musicText").textContent = "Pause";
+        playMelody(0);
+      }
+    }
+
+    function playMelody(noteIdx) {
+      if (!isPlaying || !audioCtx) return;
+      if (noteIdx >= melody.length) noteIdx = 0;
+
+      const note = melody[noteIdx];
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      // Soft music-box chime wave
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + note.d);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + note.d);
+
+      musicTimeout = setTimeout(() => {
+        playMelody(noteIdx + 1);
+      }, note.d * 1000);
+    }
+
+    function playJingleSound() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const chimes = [523.25, 659.25, 783.99, 1046.50];
+      chimes.forEach((f, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.08);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + i * 0.08);
+        osc.stop(audioCtx.currentTime + i * 0.08 + 0.5);
+      });
+    }
+
+    /* --- Organizer Panel Logic --- */
+    function toggleAdmin() {
+      const panel = document.getElementById("adminPanel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    }
+
+    function unlockAdmin() {
+      const pin = document.getElementById("adminPin").value;
+      if (pin === "2026") {
+        document.getElementById("adminAuth").style.display = "none";
+        document.getElementById("adminBody").style.display = "block";
+        buildAdminContent();
+      } else {
+        alert("Incorrect PIN");
+      }
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById("tabMasterView").style.display = (tab === 'master') ? 'block' : 'none';
+      document.getElementById("tabShareView").style.display = (tab === 'share') ? 'block' : 'none';
+      document.getElementById("tabMasterBtn").classList.toggle('active', tab === 'master');
+      document.getElementById("tabShareBtn").classList.toggle('active', tab === 'share');
+    }
+
+    function buildAdminContent() {
+      const masterBox = document.getElementById("masterListContent");
+      const shareBox = document.getElementById("shareListContent");
+      const baseUrl = window.location.origin + window.location.pathname;
+
+      masterBox.innerHTML = "";
+      shareBox.innerHTML = "";
+
+      PARTICIPANTS.forEach(giver => {
+        const rec = PAIRINGS_2026[giver];
+
+        // Master List Row
+        const mRow = document.createElement("div");
+        mRow.className = "record-row";
+        mRow.innerHTML = `<strong>${giver}</strong> ➔ <span style="color:#27ae60; font-weight:bold;">${rec}</span>`;
+        masterBox.appendChild(mRow);
+
+        // Share Row
+        const link = `${baseUrl}?user=${encodeURIComponent(giver)}`;
+        const waMsg = encodeURIComponent(`🎄 Gingerbread Gathering 2026: Hi ${giver}, here is your private Secret Santa link! Tap to reveal who you got: ${link}`);
+        const sRow = document.createElement("div");
+        sRow.className = "record-row";
+        sRow.innerHTML = `<span><strong>${giver}</strong></span> <a href="https://api.whatsapp.com/send?text=${waMsg}" target="_blank" class="btn-wa">Send WhatsApp</a>`;
+        shareBox.appendChild(sRow);
+      });
+    }
+
+    function copyMasterHistory() {
+      let text = "🎄 Gingerbread Gathering 2026 Master Draw 🎄\\n\\n";
+      PARTICIPANTS.forEach(name => {
+        text += `${name} drew ${PAIRINGS_2026[name]}\\n`;
+      });
+      navigator.clipboard.writeText(text);
+      alert("Master pairings copied! Paste into your notes to keep for 2027.");
+    }
+  </script>
 </body>
 </html>
