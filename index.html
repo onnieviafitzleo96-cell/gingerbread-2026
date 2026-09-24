@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>🎄 Gingerbread Gathering 2026 🎁 Secret Santa</title>
+  
+  <!-- Google Font & Tailwind CSS CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Fredoka', cursive, sans-serif;
+      background: radial-gradient(circle at 50% 10%, #1e3a8a 0%, #0f172a 75%, #050811 100%);
+      color: #1e293b;
+      min-height: 100vh;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    .font-christmas {
+      font-family: 'Mountains of Christmas', cursive;
+    }
+
+    /* Falling snowflakes canvas */
+    #snow-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Card Candy Border */
+    .candy-border {
+      border: 5px solid transparent;
+      border-image: repeating-linear-gradient(
+        45deg,
+        #ef4444 0px,
+        #ef4444 14px,
+        #ffffff 14px,
+        #ffffff 28px,
+        #10b981 28px,
+        #10b981 42px,
+        #ffffff 42px,
+        #ffffff 56px
+      ) 8;
+    }
+
+    /* Interactive gift box shake */
+    @keyframes gift-wobble {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      20% { transform: rotate(-8deg) scale(1.05); }
+      40% { transform: rotate(8deg) scale(1.08); }
+      60% { transform: rotate(-6deg) scale(1.05); }
+      80% { transform: rotate(6deg) scale(1.02); }
+    }
+
+    .shake-box {
+      animation: gift-wobble 0.75s infinite ease-in-out;
+    }
+
+    @keyframes popInBounce {
+      0% { opacity: 0; transform: scale(0.6) translateY(20px); }
+      70% { transform: scale(1.08) translateY(-4px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .animate-pop-in {
+      animation: popInBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* Custom button shimmer */
+    .btn-glow {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+      transition: all 0.25s ease;
+    }
+    .btn-glow:hover {
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
+      transform: translateY(-2px);
+    }
+    .btn-glow:active {
+      transform: translateY(1px);
+    }
+  </style>
+</head>
+
+<body class="relative flex flex-col items-center justify-between p-3 sm:p-6 select-none">
+  <canvas id="snow-canvas"></canvas>
+
+  <div class="relative z-10 w-full max-w-xl mx-auto my-2">
+    <!-- Header Card -->
+    <header class="text-center mb-5 text-white">
+      <div class="inline-flex items-center gap-2 bg-amber-600/90 text-amber-100 px-4 py-1 rounded-full text-xs sm:text-sm font-semibold mb-2 border border-amber-400 shadow-md">
+        <span>🍪 2026 Official Exchange</span>
+        <span>•</span>
+        <span>🔒 Past 2025 Matches Locked</span>
+      </div>
+      <h1 class="font-christmas text-4xl sm:text-6xl font-bold tracking-wider text-red-400 drop-shadow-[0_3px_5px_rgba(0,0,0,0.8)]">
+        Gingerbread Gathering
+      </h1>
+      <p class="text-emerald-300 text-sm sm:text-base font-medium tracking-wide mt-1">
+        ✨ 12 Friends, Pure Surprises, Zero Repeats ✨
+      </p>
+    </header>
+
+    <main class="bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-7 shadow-2xl candy-border relative">
+      
+      <!-- Top Actions Bar: Reset & Mute Sound -->
+      <div class="flex items-center justify-between border-b pb-4 mb-5 border-slate-200">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🎅</span>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800 leading-tight">Secret Santa Portal</h2>
+            <p class="text-xs text-slate-500" id="draw-status-badge">Drawing ready for 12 participants</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="sound-btn" onclick="toggleSound()" title="Toggle Sound"
+            class="p-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm transition-transform active:scale-90">
+            🔔 Sound: <span id="sound-state" class="font-bold text-emerald-600">ON</span>
+          </button>
+          <button onclick="confirmRedraw()" title="Re-roll Draw"
+            class="p-2.5 rounded-full bg-red-100 hover:bg-red-200 text-red-700 text-sm transition-transform active:scale-90 flex items-center gap-1">
+            🔄 <span class="hidden sm:inline text-xs font-bold">New Draw</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl mb-6 font-semibold text-sm">
+        <button id="tab-private" onclick="switchTab('private')" 
+          class="py-2.5 px-3 rounded-xl bg-red-600 text-white shadow-md transition-all flex items-center justify-center gap-1.5">
+          <span>🎁</span>
+          <span>My Secret Santa</span>
+        </button>
+        <button id="tab-all" onclick="switchTab('all')" 
+          class="py-2.5 px-3 rounded-xl text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5">
+          <span>📜</span>
+          <span>Full Group List</span>
+        </button>
+      </div>
+
+      <section id="view-private" class="flex flex-col items-center text-center">
+        <div class="w-full mb-4 text-left">
+          <label for="person-select" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+            Who are you? (Select your name):
+          </label>
+          <div class="relative">
+            <select id="person-select" onchange="onSelectPerson()"
+              class="w-full bg-slate-50 border-2 border-emerald-400 text-slate-800 font-bold text-base rounded-2xl p-3.5 pr-10 focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all cursor-pointer">
+              <option value="" disabled selected>-- Tap here to choose your name --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Interactive Gift Box Card -->
+        <div id="gift-interactive-card" class="w-full bg-gradient-to-b from-amber-50 to-red-50 border-2 border-amber-200 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden transition-all duration-300">
+          
+          <!-- State 1: Choose Name Prompt -->
+          <div id="state-prompt" class="text-center py-4">
+            <div class="text-6xl mb-3">🎄</div>
+            <p class="text-slate-700 font-bold text-lg">Pick your name above!</p>
+            <p class="text-slate-500 text-xs mt-1 max-w-xs mx-auto">
+              Your match is securely drawn and hidden. Once chosen, tap the gift box to unwrap your Secret Santa!
+            </p>
+          </div>
+
+          <!-- State 2: Ready to unwrap (Wrapped Present) -->
+          <div id="state-ready" class="hidden flex-col items-center py-2">
+            <div id="present-box" onclick="unwrapMyGift()" 
+              class="shake-box cursor-pointer text-7xl select-none p-3 filter drop-shadow-lg transform active:scale-95 transition-transform" 
+              title="Click to unwrap!">
+              🎁
+            </div>
+            <p class="text-red-700 font-bold text-base mt-2">Ready, <span id="ready-giver-name" class="underline"></span>!</p>
+            <button onclick="unwrapMyGift()" 
+              class="mt-3 px-6 py-2.5 bg-gradient-to-r from-red-600 to-emerald-600 text-white font-bold rounded-full text-sm shadow-md hover:opacity-95 active:scale-95 transition-all flex items-center gap-2">
+              <span>✨ Tap To Unwrap! ✨</span>
+            </button>
+            <p class="text-[11px] text-slate-400 mt-2">Make sure no one is peeking behind you!</p>
+          </div>
+
+          <!-- State 3: Revealed match -->
+          <div id="state-revealed" class="hidden flex-col items-center animate-pop-in py-2">
+            <span class="inline-block bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold mb-2">
+              🎉 Your 2026 Recipient is:
+            </span>
+            <div class="text-5xl mb-2">🧑‍🎄</div>
+            <h3 id="recipient-name-display" class="text-3xl sm:text-4xl font-extrabold text-red-600 tracking-wide uppercase drop-shadow-sm">
+              ---
+            </h3>
+            <p class="text-xs text-slate-500 max-w-xs mt-2 italic">
+              "Shhh! Keep it secret until the Gingerbread Gathering party!" 🤫
+            </p>
+
+            <div class="flex items-center gap-3 mt-4">
+              <button onclick="hideRevealed()" 
+                class="px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs tracking-wider uppercase transition-transform active:scale-95">
+                🙈 Hide Secret Again
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2025 Past Match Excluded Note -->
+        <div id="past-match-pill" class="mt-4 inline-flex items-center gap-2 text-xs bg-red-50 text-red-700 border border-red-200 px-3.5 py-1.5 rounded-full font-medium">
+          🛡️ Guarantee: <span>You will NOT get the person you drew in 2025!</span>
+        </div>
+      </section>
+
+      <section id="view-all" class="hidden flex-col">
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 flex items-center justify-between text-xs text-amber-900">
+          <div>
+            <span class="font-bold">⚠️ Host View:</span> This reveals all 12 pairs at once.
+          </div>
+          <button onclick="shareWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
+            <span>💬 Share</span>
+          </button>
+        </div>
+
+        <div id="full-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <button onclick="copyToClipboard()" class="text-slate-700 hover:text-slate-900 font-bold underline flex items-center gap-1">
+            📋 Copy text summary
+          </button>
+          <span id="copy-msg" class="text-emerald-600 font-semibold hidden">Copied to clipboard!</span>
+        </div>
+      </section>
+
+      <details class="mt-5 border-t border-slate-100 pt-3 text-xs text-slate-600">
+        <summary class="cursor-pointer font-bold text-slate-700 hover:text-red-600 select-none flex items-center justify-between">
+          <span>📜 View 2025 Past Pairing Exclusions (12 Rules)</span>
+          <span class="text-slate-400">▼</span>
+        </summary>
+        <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] font-medium text-slate-600">
+          <div>• Pera <span class="text-red-500 font-bold">≠</span> Merry (2025)</div>
+          <div>• Via <span class="text-red-500 font-bold">≠</span> Leo (2025)</div>
+          <div>• Leara <span class="text-red-500 font-bold">≠</span> Gadi (2025)</div>
+          <div>• Rozabelle <span class="text-red-500 font-bold">≠</span> Caleb (2025)</div>
+          <div>• Niki <span class="text-red-500 font-bold">≠</span> Elzie (2025)</div>
+          <div>• Evelyn <span class="text-red-500 font-bold">≠</span> Via (2025)</div>
+          <div>• Gadi <span class="text-red-500 font-bold">≠</span> Ching (2025)</div>
+          <div>• Ching <span class="text-red-500 font-bold">≠</span> Leara (2025)</div>
+          <div>• Merry <span class="text-red-500 font-bold">≠</span> Jason (2025)</div>
+          <div>• Lulong <span class="text-red-500 font-bold">≠</span> Eric (2025)</div>
+          <div>• Gimbs <span class="text-red-500 font-bold">≠</span> Pera (2025)</div>
+          <div>• Elzie <span class="text-red-500 font-bold">≠</span> Aggy (2025)</div>
+        </div>
+      </details>
+
+    </main>
+
+    <!-- Footer with festive cheer -->
+    <footer class="text-center mt-4 text-slate-300 text-xs font-medium">
+      🎄 Gingerbread's Gathering 2026 • Made with ❤️ & Christmas Magic 🎁
+    </footer>
+  </div>
+
+  <div id="custom-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center candy-border">
+      <div class="text-4xl mb-2">🎲</div>
+      <h3 class="text-lg font-bold text-slate-800" id="modal-title">Re-shuffle Draw?</h3>
+      <p class="text-xs text-slate-600 mt-2" id="modal-desc">
+        This will generate completely brand-new secret matches for all 12 participants while still respecting past 2025 exclusions.
+      </p>
+      <div class="mt-5 flex gap-2 justify-center">
+        <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-300">
+          Cancel
+        </button>
+        <button id="modal-confirm-btn" class="px-5 py-2 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 shadow-md">
+          Yes, Re-draw
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Exact 12 participants for 2026
+    const PARTICIPANTS = [
+      "Pera",
+      "Via",
+      "Leara",
+      "Rozabelle",
+      "Niki",
+      "Evelyn",
+      "Gadi",
+      "Ching",
+      "Merry",
+      "Lulong",
+      "Gimbs",
+      "Elzie"
+    ];
+
+    // Exclusion lookup: Past 2025 match cannot be drawn again
+    const PAST_2025_DRAWS = {
+      "Pera": "Merry",
+      "Via": "Leo",         // Leo not in 2026 anyway
+      "Leara": "Gadi",
+      "Rozabelle": "Caleb", // Caleb not in 2026 anyway
+      "Niki": "Elzie",
+      "Evelyn": "Via",
+      "Gadi": "Ching",
+      "Ching": "Leara",
+      "Merry": "Jason",     // Jason not in 2026 anyway
+      "Lulong": "Eric",     // Eric not in 2026 anyway
+      "Gimbs": "Pera",      // Peraa in 2025
+      "Elzie": "Aggy"       // Aggy not in 2026 anyway
+    };
+
+    // State
+    let currentPairings = {}; // Map: Giver -> Receiver
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("sound-state").textContent = soundEnabled ? "ON" : "OFF";
+      document.getElementById("sound-state").className = soundEnabled ? "font-bold text-emerald-600" : "font-bold text-slate-400";
+    }
+
+    // Play synthesized bell tone
+    function playTone(freq, duration = 0.2, type = 'triangle') {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // Audio context fallback
+      }
+    }
+
+    function playJingle() {
+      if (!soundEnabled) return;
+      // "Jingle Bells" festive opening riff: E5, E5, E5
+      const notes = [659.25, 659.25, 659.25, 659.25, 659.25, 659.25, 659.25, 783.99, 523.25, 587.33, 659.25];
+      const times = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000];
+      notes.forEach((f, i) => {
+        setTimeout(() => playTone(f, 0.28, 'sine'), times[i]);
+      });
+    }
+
+    function playUnwrapSound() {
+      if (!soundEnabled) return;
+      // High glissando chime
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+        setTimeout(() => playTone(freq, 0.35, 'triangle'), idx * 80);
+      });
+    }
+
+    // Generates a complete single Secret Santa cycle or valid bijection where:
+    // 1. giver !== receiver (no self picks)
+    // 2. receiver !== PAST_2025_DRAWS[giver] (no repeats of 2025)
+    // 3. Every receiver is chosen exactly once
+    function solveSecretSanta(participants, pastExclusions) {
+      const givers = [...participants];
+      // Randomize giver order to guarantee true entropy on every draw
+      givers.sort(() => Math.random() - 0.5);
+
+      const availableReceivers = new Set(participants);
+      const assignment = {};
+
+      function backtrack(index) {
+        if (index === givers.length) {
+          return true; // All matched successfully
+        }
+
+        const giver = givers[index];
+        // Candidates: everyone except giver and past exclusion
+        const candidates = participants.filter(cand => 
+          availableReceivers.has(cand) &&
+          cand !== giver &&
+          cand !== pastExclusions[giver]
+        );
+
+        // Shuffle candidate evaluation order
+        candidates.sort(() => Math.random() - 0.5);
+
+        for (const candidate of candidates) {
+          assignment[giver] = candidate;
+          availableReceivers.delete(candidate);
+
+          if (backtrack(index + 1)) {
+            return true;
+          }
+
+          // Backtrack
+          delete assignment[giver];
+          availableReceivers.add(candidate);
+        }
+
+        return false;
+      }
+
+      if (backtrack(0)) {
+        return assignment;
+      }
+      return null;
+    }
+
+    function initializeOrLoadDraw() {
+      // Check if already drawn in localStorage for seamless reload
+      const saved = localStorage.getItem('gingerbread_draw_2026');
+      if (saved) {
+        try {
+          currentPairings = JSON.parse(saved);
+          // Verify matches are valid for all 12
+          const keys = Object.keys(currentPairings);
+          if (keys.length === PARTICIPANTS.length) {
+            updateUI();
+            return;
+          }
+        } catch (e) {
+          // parse error, fallback
+        }
+      }
+
+      generateNewDraw(false);
+    }
+
+    function generateNewDraw(showToast = true) {
+      const result = solveSecretSanta(PARTICIPANTS, PAST_2025_DRAWS);
+      if (result) {
+        currentPairings = result;
+        localStorage.setItem('gingerbread_draw_2026', JSON.stringify(currentPairings));
+        updateUI();
+        if (showToast) {
+          triggerConfetti();
+          playJingle();
+        }
+      }
+    }
+
+    function updateUI() {
+      const select = document.getElementById("person-select");
+      const currentSelected = select.value;
+      select.innerHTML = '<option value="" disabled selected>-- Tap here to choose your name --</option>';
+
+      // Sort alphabetically for clean user experience
+      const sortedParticipants = [...PARTICIPANTS].sort((a, b) => a.localeCompare(b));
+      sortedParticipants.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = `🎁 ${name}`;
+        select.appendChild(opt);
+      });
+
+      if (currentSelected && PARTICIPANTS.includes(currentSelected)) {
+        select.value = currentSelected;
+        onSelectPerson();
+      } else {
+        resetGiftCardState();
+      }
+
+      renderFullList();
+    }
+
+    function onSelectPerson() {
+      const select = document.getElementById("person-select");
+      const chosen = select.value;
+      if (!chosen) return;
+
+      document.getElementById("ready-giver-name").textContent = chosen;
+      
+      // Update Past match pill notification
+      const past2025 = PAST_2025_DRAWS[chosen];
+      const pill = document.getElementById("past-match-pill");
+      if (past2025 && PARTICIPANTS.includes(past2025)) {
+        pill.innerHTML = `🛡️ Excluded Rule: <b>${chosen}</b> will <b>NOT</b> draw <b>${past2025}</b> (drew in 2025)!`;
+      } else {
+        pill.innerHTML = `🛡️ 2025 Past match exclusion is active and respected.`;
+      }
+
+      // Show present ready state
+      document.getElementById("state-prompt").classList.add("hidden");
+      document.getElementById("state-ready").classList.remove("hidden");
+      document.getElementById("state-ready").classList.add("flex");
+      document.getElementById("state-revealed").classList.add("hidden");
+      document.getElementById("state-revealed").classList.remove("flex");
+    }
+
+    function resetGiftCardState() {
+      document.getElementById("state-prompt").classList.remove("hidden");
+      document.getElementById("state-ready").classList.add("hidden");
+      document.getElementById("state-ready").classList.remove("flex");
+      document.getElementById("state-revealed").classList.add("hidden");
+      document.getElementById("state-revealed").classList.remove("flex");
+    }
+
+    function unwrapMyGift() {
+      const giver = document.getElementById("person-select").value;
+      if (!giver || !currentPairings[giver]) return;
+
+      const receiver = currentPairings[giver];
+
+      // Play joyful sound
+      playUnwrapSound();
+
+      // Confetti burst
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.65 }
+      });
+
+      document.getElementById("recipient-name-display").textContent = receiver;
+
+      document.getElementById("state-ready").classList.add("hidden");
+      document.getElementById("state-ready").classList.remove("flex");
+
+      const revealEl = document.getElementById("state-revealed");
+      revealEl.classList.remove("hidden");
+      revealEl.classList.add("flex");
+    }
+
+    function hideRevealed() {
+      const select = document.getElementById("person-select");
+      select.value = "";
+      resetGiftCardState();
+      playTone(400, 0.15, 'sine');
+    }
+
+    function renderFullList() {
+      const container = document.getElementById("full-list-container");
+      container.innerHTML = "";
+
+      PARTICIPANTS.forEach((giver, i) => {
+        const receiver = currentPairings[giver] || "???";
+        const card = document.createElement("div");
+        card.className = "flex items-center justify-between p-3 bg-slate-50 hover:bg-emerald-50 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold transition-colors";
+        
+        card.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-700 font-bold text-[11px]">${i+1}</span>
+            <span class="text-slate-800">${giver}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-emerald-700 font-bold">
+            <span class="text-red-500">🎁 ➔</span>
+            <span>${receiver}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchTab(mode) {
+      const btnPrivate = document.getElementById("tab-private");
+      const btnAll = document.getElementById("tab-all");
+      const viewPrivate = document.getElementById("view-private");
+      const viewAll = document.getElementById("view-all");
+
+      if (mode === 'private') {
+        btnPrivate.className = "py-2.5 px-3 rounded-xl bg-red-600 text-white shadow-md transition-all flex items-center justify-center gap-1.5";
+        btnAll.className = "py-2.5 px-3 rounded-xl text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
+        viewPrivate.classList.remove("hidden");
+        viewAll.classList.add("hidden");
+        viewAll.classList.remove("flex");
+      } else {
+        btnAll.className = "py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md transition-all flex items-center justify-center gap-1.5";
+        btnPrivate.className = "py-2.5 px-3 rounded-xl text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
+        viewPrivate.classList.add("hidden");
+        viewAll.classList.remove("hidden");
+        viewAll.classList.add("flex");
+      }
+    }
+
+    function generateSummaryText() {
+      let text = `🎄 *Gingerbread Gathering 2026 - Secret Santa Draw* 🎅\n`;
+      text += `📅 Saturday, December 2026\n`;
+      text += `🔒 (2025 pairings excluded)\n\n`;
+      PARTICIPANTS.forEach(giver => {
+        text += `• *${giver}* drew ➔ *${currentPairings[giver]}*\n`;
+      });
+      text += `\nMerry Christmas everyone! 🎁✨`;
+      return text;
+    }
+
+    function copyToClipboard() {
+      const summary = generateSummaryText();
+      const tempArea = document.createElement("textarea");
+      tempArea.value = summary;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempArea);
+
+      const msg = document.getElementById("copy-msg");
+      msg.classList.remove("hidden");
+      setTimeout(() => msg.classList.add("hidden"), 3000);
+    }
+
+    function shareWhatsApp() {
+      const summary = generateSummaryText();
+      const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(summary);
+      window.open(url, "_blank");
+    }
+
+    function confirmRedraw() {
+      const modal = document.getElementById("custom-modal");
+      modal.classList.remove("hidden");
+      document.getElementById("modal-confirm-btn").onclick = function() {
+        closeModal();
+        generateNewDraw(true);
+      };
+    }
+
+    function closeModal() {
+      document.getElementById("custom-modal").classList.add("hidden");
+    }
+
+    function triggerConfetti() {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    }
+
+    function initSnowCanvas() {
+      const canvas = document.getElementById("snow-canvas");
+      const ctx = canvas.getContext("2d");
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener("resize", () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const flakes = [];
+      const flakeCount = 55;
+
+      for (let i = 0; i < flakeCount; i++) {
+        flakes.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 3 + 1,
+          d: Math.random() * flakeCount,
+          speed: Math.random() * 0.8 + 0.5
+        });
+      }
+
+      function drawSnow() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.beginPath();
+        for (let i = 0; i < flakeCount; i++) {
+          const f = flakes[i];
+          ctx.moveTo(f.x, f.y);
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
+        }
+        ctx.fill();
+        updateSnow();
+        requestAnimationFrame(drawSnow);
+      }
+
+      function updateSnow() {
+        for (let i = 0; i < flakeCount; i++) {
+          const f = flakes[i];
+          f.y += f.speed;
+          f.x += Math.sin(f.d) * 0.5;
+
+          if (f.y > height) {
+            flakes[i] = {
+              x: Math.random() * width,
+              y: -5,
+              r: f.r,
+              d: f.d,
+              speed: f.speed
+            };
+          }
+        }
+      }
+
+      drawSnow();
+    }
+
+    // Startup
+    window.addEventListener("load", () => {
+      initSnowCanvas();
+      initializeOrLoadDraw();
+    });
+  </script>
+</body>
+</html>
