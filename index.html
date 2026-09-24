@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>🎄 Gingerbread's Gathering 2026 🎅</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
@@ -24,6 +24,7 @@
       padding: 1.5rem 1rem;
       position: relative;
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* Falling Snow */
@@ -52,6 +53,7 @@
       right: 1rem;
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.4);
       color: #fff;
       padding: 0.5rem 0.9rem;
@@ -65,7 +67,7 @@
       gap: 6px;
     }
 
-    /* Clean Festive Card */
+    /* Main Festive Card */
     .card {
       background: rgba(255, 255, 255, 0.96);
       max-width: 420px;
@@ -97,7 +99,7 @@
       margin-bottom: 0.3rem;
     }
     .user-greeting {
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: #1a365d;
       margin-top: 0.5rem;
@@ -109,7 +111,7 @@
       margin-bottom: 1.5rem;
     }
 
-    /* Gift Box Unbox Animation */
+    /* Gift Area */
     .gift-interactive {
       background: #fdfaf6;
       border: 2px dashed #e2d7c5;
@@ -118,16 +120,17 @@
       margin: 1rem 0;
     }
     .gift-icon {
-      font-size: 4.5rem;
+      font-size: 4.8rem;
       display: inline-block;
       cursor: pointer;
       animation: wobble 2s infinite ease-in-out;
       user-select: none;
+      -webkit-user-select: none;
     }
     @keyframes wobble {
       0%, 100% { transform: rotate(0deg) scale(1); }
-      25% { transform: rotate(-8deg) scale(1.05); }
-      75% { transform: rotate(8deg) scale(1.05); }
+      25% { transform: rotate(-7deg) scale(1.04); }
+      75% { transform: rotate(7deg) scale(1.04); }
     }
     .btn-reveal {
       display: block;
@@ -137,14 +140,14 @@
       border: none;
       font-size: 1.1rem;
       font-weight: bold;
-      padding: 0.9rem;
+      padding: 0.95rem;
       border-radius: 50px;
       cursor: pointer;
       margin-top: 1.2rem;
       box-shadow: 0 4px 15px rgba(192, 57, 43, 0.35);
     }
 
-    /* Revealed Result Box */
+    /* Revealed Result */
     .reveal-box {
       display: none;
       background: #fff;
@@ -159,7 +162,7 @@
       to { transform: scale(1); opacity: 1; }
     }
     .revealed-name {
-      font-size: 2.2rem;
+      font-size: 2.3rem;
       color: var(--pine-green);
       font-weight: 900;
       margin: 0.4rem 0 0.8rem;
@@ -175,19 +178,19 @@
       cursor: pointer;
     }
 
-    /* Invalid / Missing URL State */
+    /* Missing URL Warning */
     .invalid-box {
       background: #fff5f5;
       border: 1px solid #feb2b2;
       color: #c53030;
-      padding: 1rem;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      line-height: 1.4;
+      padding: 1.2rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      line-height: 1.5;
       margin-top: 1rem;
     }
 
-    /* Admin Footer */
+    /* Organizer Controls */
     .admin-toggle {
       margin-top: 1.8rem;
       font-size: 0.78rem;
@@ -258,28 +261,22 @@
   <div class="snow"></div>
 
   <!-- Music Toggle Button -->
-  <button class="music-btn" onclick="toggleMusic()">
+  <button class="music-btn" id="musicBtn" onclick="toggleMusic(event)">
     <span id="musicIcon">🎵</span> <span id="musicText">Play Music</span>
   </button>
-
-  <!-- Audio Element with Music Box Christmas Carol -->
-  <audio id="bgMusic" loop preload="auto">
-    <source src="https://upload.wikimedia.org/wikipedia/commons/e/e8/We_Wish_You_A_Merry_Christmas_-_music_box.ogg" type="audio/ogg">
-    <source src="https://orangefreesounds.com/wp-content/uploads/2020/12/We-wish-you-a-merry-christmas-music-box.mp3" type="audio/mpeg">
-  </audio>
 
   <div class="card">
     <div class="badge">Secret Santa 2026</div>
     <h1>Gingerbread's Gathering</h1>
 
-    <!-- 1. Participant View (When opened via ?user=Name) -->
+    <!-- 1. Participant Screen (Only sees their own name greeting and reveal) -->
     <div id="participantScreen" style="display:none;">
       <div class="user-greeting" id="userNameGreeting">Hi there!</div>
       <p class="user-sub">Here is your Secret Santa gift draw.</p>
 
       <div class="gift-interactive">
-        <div class="gift-icon" onclick="revealMatch()">🎁</div>
-        <button class="btn-reveal" onclick="revealMatch()">🎁 Tap to Reveal</button>
+        <div class="gift-icon" onclick="revealMatch(event)">🎁</div>
+        <button class="btn-reveal" onclick="revealMatch(event)">🎁 Tap to Reveal</button>
 
         <div id="revealBox" class="reveal-box">
           <p style="font-size:0.85rem; color:#777; text-transform:uppercase; letter-spacing:1px; font-weight:600;">You are gifting:</p>
@@ -289,10 +286,10 @@
       </div>
     </div>
 
-    <!-- 2. Screen when visiting raw homepage without a personal link -->
+    <!-- 2. Screen if opened without user param -->
     <div id="unauthorizedScreen" style="display:none;" class="invalid-box">
-      🎅 <strong>Private Invite Only</strong><br>
-      Please tap the private link sent to your WhatsApp to view your draw!
+      🎅 <strong>Private Invitation Only</strong><br><br>
+      Please open the private link sent to your WhatsApp so you only see your own Secret Santa draw!
     </div>
 
     <!-- 3. Organizer Drawer -->
@@ -324,7 +321,7 @@
   </div>
 
   <script>
-    // Exact locked 2026 pairings (no repeats from 2025)
+    // Exact locked 2026 pairings
     const PAIRINGS_2026 = {
       "Pera": "Elzie",
       "Via": "Rozabelle",
@@ -342,7 +339,6 @@
 
     const PARTICIPANTS = Object.keys(PAIRINGS_2026);
 
-    // Read ?user=Name from URL
     const params = new URLSearchParams(window.location.search);
     const rawUser = params.get('user');
 
@@ -361,11 +357,11 @@
       unauthorizedScreen.style.display = "block";
     }
 
-    function revealMatch() {
+    function revealMatch(e) {
       if (!matchedUser) return;
 
-      // Start music automatically on user interaction if not already playing
-      startMusicSilently();
+      // Unlock and start iOS audio immediately from tap gesture
+      unlockAndPlayAudio();
 
       const receiver = PAIRINGS_2026[matchedUser];
       document.getElementById("matchNameDisplay").textContent = receiver;
@@ -382,32 +378,100 @@
       document.getElementById("revealBox").style.display = "none";
     }
 
-    /* --- Music Controls --- */
-    const music = document.getElementById("bgMusic");
-    music.volume = 0.5;
+    /* -------------------------------------------------------------
+       iOS Safari & Android Web Audio Engine
+       (Generates melodic music-box carols locally; no CORS or mute issues)
+       ------------------------------------------------------------- */
+    let audioCtx = null;
+    let isPlaying = false;
+    let melodyTimer = null;
 
-    function toggleMusic() {
-      if (music.paused) {
-        music.play();
-        document.getElementById("musicIcon").textContent = "⏸️";
-        document.getElementById("musicText").textContent = "Pause";
+    // "We Wish You a Merry Christmas" notes
+    const songNotes = [
+      { f: 261.63, d: 0.38 }, { f: 349.23, d: 0.38 }, { f: 349.23, d: 0.19 }, 
+      { f: 392.00, d: 0.19 }, { f: 349.23, d: 0.19 }, { f: 329.63, d: 0.19 }, 
+      { f: 293.66, d: 0.38 }, { f: 293.66, d: 0.38 }, { f: 293.66, d: 0.38 }, 
+      { f: 392.00, d: 0.38 }, { f: 392.00, d: 0.19 }, { f: 440.00, d: 0.19 }, 
+      { f: 392.00, d: 0.19 }, { f: 349.23, d: 0.19 }, { f: 329.63, d: 0.38 }, 
+      { f: 261.63, d: 0.38 }, { f: 261.63, d: 0.38 }, { f: 440.00, d: 0.38 }, 
+      { f: 440.00, d: 0.19 }, { f: 493.88, d: 0.19 }, { f: 440.00, d: 0.19 }, 
+      { f: 392.00, d: 0.19 }, { f: 349.23, d: 0.38 }, { f: 293.66, d: 0.38 }, 
+      { f: 261.63, d: 0.19 }, { f: 261.63, d: 0.19 }, { f: 293.66, d: 0.38 }, 
+      { f: 392.00, d: 0.38 }, { f: 329.63, d: 0.38 }, { f: 349.23, d: 0.76 }
+    ];
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleMusic(e) {
+      if (e) e.stopPropagation();
+      initAudio();
+
+      if (isPlaying) {
+        stopMelody();
       } else {
-        music.pause();
-        document.getElementById("musicIcon").textContent = "🎵";
-        document.getElementById("musicText").textContent = "Play Music";
+        startMelody();
       }
     }
 
-    function startMusicSilently() {
-      if (music.paused) {
-        music.play().then(() => {
-          document.getElementById("musicIcon").textContent = "⏸️";
-          document.getElementById("musicText").textContent = "Pause";
-        }).catch(() => {});
+    function unlockAndPlayAudio() {
+      initAudio();
+      if (!isPlaying) {
+        startMelody();
       }
     }
 
-    /* --- Organizer Panel Logic --- */
+    function startMelody() {
+      isPlaying = true;
+      document.getElementById("musicIcon").textContent = "⏸️";
+      document.getElementById("musicText").textContent = "Pause";
+      playStep(0);
+    }
+
+    function stopMelody() {
+      isPlaying = false;
+      clearTimeout(melodyTimer);
+      document.getElementById("musicIcon").textContent = "🎵";
+      document.getElementById("musicText").textContent = "Play Music";
+    }
+
+    function playStep(index) {
+      if (!isPlaying || !audioCtx) return;
+      if (index >= songNotes.length) index = 0;
+
+      const note = songNotes[index];
+      const now = audioCtx.currentTime;
+
+      // Primary sine oscillator for soft music-box bell tone
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(note.f, now);
+
+      // Music box envelope
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.1);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + note.d * 1.1);
+
+      melodyTimer = setTimeout(() => {
+        playStep(index + 1);
+      }, note.d * 1000);
+    }
+
+    /* --- Organizer Panel --- */
     function toggleAdmin() {
       const panel = document.getElementById("adminPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
