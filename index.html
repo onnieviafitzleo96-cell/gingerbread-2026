@@ -103,8 +103,8 @@
       50% { transform: scale(1.05); }
     }
 
-    /* Floating Music Status Badge */
-    .music-badge {
+    /* Floating Volume & Music Controls */
+    .music-bar {
       position: fixed;
       top: 1rem;
       right: 1rem;
@@ -113,15 +113,40 @@
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.35);
       color: #fff;
-      padding: 0.45rem 0.85rem;
+      padding: 0.35rem 0.75rem;
       border-radius: 50px;
-      font-size: 0.8rem;
-      font-weight: 600;
       z-index: 10;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+    }
+    .vol-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0;
+    }
+    .vol-slider {
+      -webkit-appearance: none;
+      width: 75px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.5);
+      outline: none;
+      cursor: pointer;
+    }
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffd700;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
     }
 
     /* Main Festive Card */
@@ -326,9 +351,10 @@
     </div>
   </div>
 
-  <!-- Music Status Toggle -->
-  <div class="music-badge" onclick="toggleAudio(event)">
-    <span id="musicIcon">🎶</span> <span id="musicText">Music: On</span>
+  <!-- Volume & Music Controls -->
+  <div class="music-bar">
+    <button class="vol-btn" id="volIcon" onclick="toggleMute()" title="Mute/Unmute">🔊</button>
+    <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="0.6" oninput="changeVolume(this.value)">
   </div>
 
   <div class="card">
@@ -423,14 +449,15 @@
     }
 
     /* -------------------------------------------------------------
-       Self-Contained Festive Music Box (Web Audio Engine)
-       Zero external files, zero byte-range errors, 100% iOS compatible
+       Festive Music Box Audio Engine with Dynamic Master Volume
        ------------------------------------------------------------- */
     let audioCtx = null;
+    let masterGain = null;
     let isPlaying = false;
     let noteTimer = null;
+    let currentVolume = 0.6;
+    let preMuteVolume = 0.6;
 
-    // "We Wish You a Merry Christmas" Melody
     const carolNotes = [
       { f: 261.63, d: 0.38 }, { f: 349.23, d: 0.38 }, { f: 349.23, d: 0.19 }, 
       { f: 392.00, d: 0.19 }, { f: 349.23, d: 0.19 }, { f: 329.63, d: 0.19 }, 
@@ -444,18 +471,50 @@
       { f: 392.00, d: 0.38 }, { f: 329.63, d: 0.38 }, { f: 349.23, d: 0.76 }
     ];
 
-    function startMusicEngine() {
+    function initAudioEngine() {
       if (!audioCtx) {
         const AudioClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioClass();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(currentVolume, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
       }
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
+    }
+
+    function changeVolume(val) {
+      currentVolume = parseFloat(val);
+      if (masterGain && audioCtx) {
+        masterGain.gain.setValueAtTime(currentVolume, audioCtx.currentTime);
+      }
+      updateVolumeIcon();
+    }
+
+    function toggleMute() {
+      if (currentVolume > 0) {
+        preMuteVolume = currentVolume;
+        changeVolume(0);
+        document.getElementById("volSlider").value = 0;
+      } else {
+        const restore = preMuteVolume > 0 ? preMuteVolume : 0.6;
+        changeVolume(restore);
+        document.getElementById("volSlider").value = restore;
+      }
+    }
+
+    function updateVolumeIcon() {
+      const icon = document.getElementById("volIcon");
+      if (currentVolume === 0) icon.textContent = "🔇";
+      else if (currentVolume < 0.4) icon.textContent = "🔉";
+      else icon.textContent = "🔊";
+    }
+
+    function startMusicEngine() {
+      initAudioEngine();
       if (!isPlaying) {
         isPlaying = true;
-        document.getElementById("musicIcon").textContent = "🎶";
-        document.getElementById("musicText").textContent = "Music: On";
         playCarollStep(0);
       }
     }
@@ -468,17 +527,16 @@
       const now = audioCtx.currentTime;
 
       const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const noteGain = audioCtx.createGain();
 
       osc.type = "sine";
       osc.frequency.setValueAtTime(note.f, now);
 
-      // Music box chime harmonics
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.2);
+      noteGain.gain.setValueAtTime(0.2, now);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.2);
 
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      osc.connect(noteGain);
+      noteGain.connect(masterGain);
 
       osc.start(now);
       osc.stop(now + note.d * 1.2);
@@ -488,28 +546,8 @@
       }, note.d * 1000);
     }
 
-    function stopMusicEngine() {
-      isPlaying = false;
-      clearTimeout(noteTimer);
-      document.getElementById("musicIcon").textContent = "🔇";
-      document.getElementById("musicText").textContent = "Music: Off";
-    }
-
-    function toggleAudio(e) {
-      if (e) e.stopPropagation();
-      if (isPlaying) {
-        stopMusicEngine();
-      } else {
-        startMusicEngine();
-      }
-    }
-
-    // Called on the very first screen tap
     function openAndStartMusic() {
-      // 1. Immediately start the Christmas carol
       startMusicEngine();
-
-      // 2. Animate out the cover curtain
       const cover = document.getElementById("welcomeCover");
       cover.style.opacity = "0";
       setTimeout(() => {
