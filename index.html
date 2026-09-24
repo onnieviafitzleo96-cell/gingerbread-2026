@@ -29,7 +29,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Falling Snow Animation */
+    /* Falling Snow */
     .snow {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -48,7 +48,7 @@
       100% { background-position: 40px 250px, 80px 250px, 30px 250px, 100px 250px; }
     }
 
-    /* Intro Curtain */
+    /* Intro Curtain (Unlocks Web Audio on iOS & Android) */
     #welcomeCover {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -459,12 +459,24 @@
       cursor: pointer;
       margin-top: 0.8rem;
     }
+    .btn-reshuffle {
+      width: 100%;
+      background: linear-gradient(135deg, #e67e22, #d35400);
+      color: #fff;
+      border: none;
+      padding: 0.65rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 10px rgba(211, 84, 0, 0.25);
+    }
   </style>
 </head>
 <body>
   <div class="snow"></div>
 
-  <!-- Intro Screen -->
+  <!-- Intro Screen (Unlocks Web Audio smoothly on iPhone & Android) -->
   <div id="welcomeCover" onclick="openAndStartMusic()">
     <div class="cover-box">
       <div class="cover-tag">🎄 Christmas 2026 🎅</div>
@@ -473,7 +485,7 @@
     </div>
   </div>
 
-  <!-- Volume Controls -->
+  <!-- Volume Controls (Slider & Mute) -->
   <div class="music-bar">
     <button class="vol-btn" id="volIcon" onclick="toggleMute()" title="Mute/Unmute">🔊</button>
     <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="0.6" oninput="changeVolume(this.value)">
@@ -551,6 +563,7 @@
         <div id="tabMasterView">
           <div id="masterListContent"></div>
           <button class="btn-copy" onclick="copyMasterHistory()">📋 Copy Master Record</button>
+          <button class="btn-reshuffle" onclick="confirmReshuffle()">🎲 Reshuffle All (Excluding 2025)</button>
         </div>
 
         <div id="tabShareView" style="display:none;">
@@ -561,35 +574,48 @@
   </div>
 
   <script>
-    /* Supabase Credentials Configured */
+    /* Supabase Cloud Connection */
     const SUPABASE_URL = "https://mfuaykvdlasxhstccwdb.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mdWF5a3ZkbGFzeGhzdGNjd2RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTI0MzgsImV4cCI6MjEwNTgyODQzOH0.f0mUjTiGtmQT0mUSnFZRzIoSseM3m0lY7CH0A6pe650";
-
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    /* 
-       Testing Pairings Configured:
-       - Via ➔ Leara
-       - Leara ➔ Via
-       - All other 10 pairings strictly adhere to no self-picks & no 2025 repeats
-         (Pera != Merry, Niki != Elzie, Evelyn != Via, Gadi != Ching, Ching != Leara, Gimbs != Pera)
-    */
-    const PAIRINGS_2026 = {
+    /* 2025 Past Pairs That CANNOT Be Repeated */
+    const EXCLUSIONS_2025 = {
+      "Pera": "Merry",
+      "Leara": "Gadi",
+      "Niki": "Elzie",
+      "Evelyn": "Via",
+      "Gadi": "Ching",
+      "Ching": "Leara",
+      "Gimbs": "Pera"
+    };
+
+    const PARTICIPANTS = [
+      "Pera", "Via", "Leara", "Rozabelle", "Niki", 
+      "Evelyn", "Gadi", "Ching", "Merry", "Lulong", "Gimbs", "Elzie"
+    ];
+
+    // Initial default pairings
+    let PAIRINGS_2026 = {
+      "Pera": "Elzie",
       "Via": "Leara",
       "Leara": "Via",
-      "Pera": "Elzie",
-      "Rozabelle": "Gimbs",
-      "Niki": "Ching",
+      "Rozabelle": "Pera",
+      "Niki": "Gimbs",
       "Evelyn": "Merry",
       "Gadi": "Lulong",
       "Ching": "Niki",
       "Merry": "Evelyn",
       "Lulong": "Rozabelle",
-      "Gimbs": "Gadi",
-      "Elzie": "Pera"
+      "Gimbs": "Ching",
+      "Elzie": "Gadi"
     };
 
-    const PARTICIPANTS = Object.keys(PAIRINGS_2026);
+    // Load any saved reshuffled draw from localStorage
+    const savedDraw = localStorage.getItem("gingerbread_pairings_2026");
+    if (savedDraw) {
+      try { PAIRINGS_2026 = JSON.parse(savedDraw); } catch(e) {}
+    }
 
     const params = new URLSearchParams(window.location.search);
     const rawUser = params.get('user');
@@ -615,6 +641,49 @@
       unauthorizedScreen.style.display = "block";
     }
 
+    /* --- Reshuffle Logic (Excludes Self & 2025 Pairs) --- */
+    function generateNewPairings() {
+      let attempts = 0;
+      while (attempts < 5000) {
+        attempts++;
+        let pool = [...PARTICIPANTS];
+        let result = {};
+        let failed = false;
+
+        for (let giver of PARTICIPANTS) {
+          // Cannot pick self AND cannot repeat 2025 match
+          let validTargets = pool.filter(p => p !== giver && EXCLUSIONS_2025[giver] !== p);
+          if (validTargets.length === 0) {
+            failed = true;
+            break;
+          }
+          let pick = validTargets[Math.floor(Math.random() * validTargets.length)];
+          result[giver] = pick;
+          pool = pool.filter(p => p !== pick);
+        }
+
+        if (!failed) return result;
+      }
+      return null;
+    }
+
+    function confirmReshuffle() {
+      if (confirm("⚠️ Are you sure you want to reshuffle everyone?\n\nThis will re-roll all matches while strictly ensuring nobody gets the same person as in 2025.")) {
+        const newPairs = generateNewPairings();
+        if (newPairs) {
+          PAIRINGS_2026 = newPairs;
+          localStorage.setItem("gingerbread_pairings_2026", JSON.stringify(PAIRINGS_2026));
+          if (matchedUser) {
+            targetUser = PAIRINGS_2026[matchedUser];
+            document.getElementById("targetNameLabel").textContent = targetUser;
+          }
+          buildAdminContent();
+          alert("🎉 Reshuffled successfully! All 2025 exclusions respected.");
+        }
+      }
+    }
+
+    /* --- Wishlist Cloud Sync --- */
     async function loadMyWishlist() {
       if (!matchedUser) return;
       const { data, error } = await db
@@ -730,16 +799,14 @@
     }
 
     /* -------------------------------------------------------------
-       Unified Web Audio Music Box Engine (Android & iOS)
-       Plays cleanly locally on all mobile devices without CDN failure
+       Unified Web Audio API Music-Box (iOS & Android)
        ------------------------------------------------------------- */
-    let currentVolume = 0.6;
-    let preMuteVolume = 0.6;
-
     let audioCtx = null;
     let masterGain = null;
     let isPlaying = false;
     let noteTimer = null;
+    let currentVolume = 0.6;
+    let preMuteVolume = 0.6;
 
     const carolNotes = [
       { f: 261.63, d: 0.38 }, { f: 349.23, d: 0.38 }, { f: 349.23, d: 0.19 }, 
@@ -754,7 +821,7 @@
       { f: 392.00, d: 0.38 }, { f: 329.63, d: 0.38 }, { f: 349.23, d: 0.76 }
     ];
 
-    function initAudioContext() {
+    function initAudioEngine() {
       if (!audioCtx) {
         const AudioClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioClass();
@@ -767,7 +834,7 @@
       }
     }
 
-    function playCarolStep(idx) {
+    function playNoteStep(idx) {
       if (!isPlaying || !audioCtx) return;
       if (idx >= carolNotes.length) idx = 0;
 
@@ -780,7 +847,7 @@
       osc.type = "sine";
       osc.frequency.setValueAtTime(note.f, now);
 
-      noteGain.gain.setValueAtTime(0.2, now);
+      noteGain.gain.setValueAtTime(0.25, now);
       noteGain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.2);
 
       osc.connect(noteGain);
@@ -790,16 +857,8 @@
       osc.stop(now + note.d * 1.2);
 
       noteTimer = setTimeout(() => {
-        playCarolStep(idx + 1);
+        playNoteStep(idx + 1);
       }, note.d * 1000);
-    }
-
-    function startMusic() {
-      initAudioContext();
-      if (!isPlaying) {
-        isPlaying = true;
-        playCarolStep(0);
-      }
     }
 
     function changeVolume(val) {
@@ -830,7 +889,11 @@
     }
 
     function openAndStartMusic() {
-      startMusic();
+      initAudioEngine();
+      if (!isPlaying) {
+        isPlaying = true;
+        playNoteStep(0);
+      }
       const cover = document.getElementById("welcomeCover");
       cover.style.opacity = "0";
       setTimeout(() => {
@@ -857,6 +920,7 @@
       document.getElementById("revealBox").style.display = "none";
     }
 
+    /* --- Organizer Panel Logic (PIN: 071019) --- */
     function toggleAdmin() {
       const panel = document.getElementById("adminPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
