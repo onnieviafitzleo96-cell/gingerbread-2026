@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>🎄 Gingerbread's Gathering 2026 🎅</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary-red: #c0392b;
       --pine-green: #27ae60;
       --gold: #f39c12;
+      --border-color: #e2e8f0;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,8 +22,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 1.5rem 1rem;
+      justify-content: flex-start;
+      padding: 1.5rem 1rem 3rem 1rem;
       position: relative;
       overflow-x: hidden;
       -webkit-tap-highlight-color: transparent;
@@ -149,18 +151,19 @@
       box-shadow: 0 0 6px rgba(0,0,0,0.3);
     }
 
-    /* Card */
+    /* Main Card */
     .card {
       background: rgba(255, 255, 255, 0.96);
-      max-width: 420px;
+      max-width: 440px;
       width: 100%;
       border-radius: 28px;
-      padding: 2.2rem 1.8rem;
+      padding: 2.2rem 1.6rem;
       box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
       position: relative;
       z-index: 2;
       text-align: center;
       border: 3px solid rgba(212, 175, 55, 0.4);
+      margin-top: 1.5rem;
     }
     .badge {
       display: inline-block;
@@ -198,11 +201,11 @@
       background: #fdfaf6;
       border: 2px dashed #e2d7c5;
       border-radius: 20px;
-      padding: 1.8rem 1.2rem;
-      margin: 0.5rem 0;
+      padding: 1.6rem 1.2rem;
+      margin: 0.5rem 0 1.2rem;
     }
     .gift-icon {
-      font-size: 4.8rem;
+      font-size: 4.5rem;
       display: inline-block;
       cursor: pointer;
       animation: wobble 2s infinite ease-in-out;
@@ -220,12 +223,12 @@
       background: linear-gradient(135deg, #e74c3c, #c0392b);
       color: #fff;
       border: none;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: bold;
-      padding: 0.95rem;
+      padding: 0.9rem;
       border-radius: 50px;
       cursor: pointer;
-      margin-top: 1.2rem;
+      margin-top: 1rem;
       box-shadow: 0 4px 15px rgba(192, 57, 43, 0.35);
     }
 
@@ -235,7 +238,7 @@
       background: #fff;
       border: 2px solid var(--gold);
       border-radius: 18px;
-      padding: 1.5rem 1rem;
+      padding: 1.2rem 1rem;
       margin-top: 1.2rem;
       animation: popIn 0.35s ease forwards;
     }
@@ -244,20 +247,139 @@
       to { transform: scale(1); opacity: 1; }
     }
     .revealed-name {
-      font-size: 2.3rem;
+      font-size: 2.1rem;
       color: var(--pine-green);
       font-weight: 900;
-      margin: 0.4rem 0 0.8rem;
+      margin: 0.3rem 0 0.6rem;
     }
     .btn-hide {
       background: #edf2f7;
       color: #4a5568;
       border: none;
-      padding: 0.5rem 1.2rem;
+      padding: 0.45rem 1.1rem;
       border-radius: 50px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
+    }
+
+    /* Recipient's Wishlist */
+    .target-wishlist-box {
+      margin-top: 1rem;
+      text-align: left;
+      background: #fdfaf6;
+      border: 1px solid #ebd9c5;
+      border-radius: 14px;
+      padding: 0.9rem;
+    }
+    .target-wishlist-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #8c5318;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 0.5rem;
+    }
+
+    /* User's Own Wishlist Box */
+    .my-wishlist-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.2rem;
+      margin-top: 1.4rem;
+      text-align: left;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+    }
+    .box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+    .box-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a202c;
+    }
+    .box-count {
+      font-size: 0.78rem;
+      color: #718096;
+      font-weight: 600;
+    }
+    .wish-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+    }
+    .wish-input {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      outline: none;
+    }
+    .wish-input:focus { border-color: var(--primary-red); }
+    .btn-add-wish {
+      background: #2b6cb0;
+      color: #fff;
+      border: none;
+      padding: 0.65rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-add-wish:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    .wish-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .wish-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+    }
+    .wish-info {
+      display: flex;
+      flex-direction: column;
+      max-width: 82%;
+    }
+    .wish-text {
+      color: #2d3748;
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .wish-link {
+      font-size: 0.75rem;
+      color: #3182ce;
+      text-decoration: underline;
+      display: inline-block;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-delete-wish {
+      background: none;
+      border: none;
+      color: #e53e3e;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.2rem 0.4rem;
     }
 
     /* Missing Link Warning */
@@ -370,8 +492,9 @@
     <!-- 1. Participant Screen -->
     <div id="participantScreen" style="display:none;">
       <div class="user-greeting" id="userNameGreeting">Hi there!</div>
-      <p class="user-sub">Here is your private Christmas draw.</p>
+      <p class="user-sub">Here is your private Christmas draw & wishlist.</p>
 
+      <!-- Draw Section -->
       <div class="gift-interactive">
         <div class="gift-icon" onclick="revealMatch()">🎁</div>
         <button class="btn-reveal" onclick="revealMatch()">🎁 Tap to Reveal</button>
@@ -379,7 +502,32 @@
         <div id="revealBox" class="reveal-box">
           <p style="font-size:0.85rem; color:#777; text-transform:uppercase; letter-spacing:1px; font-weight:600;">You are gifting:</p>
           <div class="revealed-name" id="matchNameDisplay">???</div>
-          <button class="btn-hide" onclick="hideMatch()">🔒 Hide & Keep Secret</button>
+
+          <!-- Recipient's Wishlist Display (Auto-synced) -->
+          <div class="target-wishlist-box">
+            <div class="target-wishlist-title">🎁 <span id="targetNameLabel">Recipient</span>'s Wishlist:</div>
+            <div id="targetWishlistItems" style="font-size:0.85rem; color:#555;">Loading wishlist...</div>
+          </div>
+
+          <button class="btn-hide" onclick="hideMatch()" style="margin-top:0.9rem;">🔒 Hide & Keep Secret</button>
+        </div>
+      </div>
+
+      <!-- User's Own Editable Wishlist Section -->
+      <div class="my-wishlist-box">
+        <div class="box-header">
+          <div class="box-title">📝 My Wishlist for My Santa</div>
+          <div class="box-count" id="wishCount">0 / 10</div>
+        </div>
+
+        <div class="wish-input-group">
+          <input type="text" id="wishTextInput" class="wish-input" placeholder="e.g. Scented Candle, Coffee Mug..." maxlength="100">
+          <input type="url" id="wishLinkInput" class="wish-input" placeholder="Link (Shopee, Lazada, etc. - Optional)">
+          <button class="btn-add-wish" id="btnAddWish" onclick="addMyWish()">+ Add to Wishlist</button>
+        </div>
+
+        <div class="wish-list" id="myWishlistContainer">
+          <!-- Live items go here -->
         </div>
       </div>
     </div>
@@ -419,6 +567,12 @@
   </div>
 
   <script>
+    /* Supabase Credentials Configured */
+    const SUPABASE_URL = "https://mfuaykvdlasxhstccwdb.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mdWF5a3ZkbGFzeGhzdGNjd2RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTI0MzgsImV4cCI6MjEwNTgyODQzOH0.f0mUjTiGtmQT0mUSnFZRzIoSseM3m0lY7CH0A6pe650";
+
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const PAIRINGS_2026 = {
       "Pera": "Elzie",
       "Via": "Rozabelle",
@@ -443,21 +597,140 @@
     const unauthorizedScreen = document.getElementById("unauthorizedScreen");
 
     let matchedUser = null;
+    let targetUser = null;
+    let myWishlist = [];
+
     if (rawUser) {
       matchedUser = PARTICIPANTS.find(p => p.toLowerCase() === rawUser.trim().toLowerCase());
     }
 
     if (matchedUser) {
+      targetUser = PAIRINGS_2026[matchedUser];
       participantScreen.style.display = "block";
       document.getElementById("userNameGreeting").textContent = `👋 Hi ${matchedUser}!`;
+      document.getElementById("targetNameLabel").textContent = targetUser;
+      loadMyWishlist();
     } else {
       unauthorizedScreen.style.display = "block";
     }
 
+    /* --- Wishlist Cloud Sync --- */
+    async function loadMyWishlist() {
+      if (!matchedUser) return;
+      const { data, error } = await db
+        .from('wishlists')
+        .select('*')
+        .eq('user_name', matchedUser)
+        .order('created_at', { ascending: true });
+
+      if (!error && data) {
+        myWishlist = data;
+        renderMyWishlist();
+      }
+    }
+
+    function renderMyWishlist() {
+      const container = document.getElementById("myWishlistContainer");
+      const countEl = document.getElementById("wishCount");
+      const addBtn = document.getElementById("btnAddWish");
+
+      countEl.textContent = `${myWishlist.length} / 10`;
+      addBtn.disabled = myWishlist.length >= 10;
+      container.innerHTML = "";
+
+      if (myWishlist.length === 0) {
+        container.innerHTML = `<div style="font-size:0.82rem; color:#888; font-style:italic;">No items yet. Add ideas or links above so your Santa knows what you like!</div>`;
+        return;
+      }
+
+      myWishlist.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "wish-item";
+        row.innerHTML = `
+          <div class="wish-info">
+            <span class="wish-text">${escapeHtml(item.item_text)}</span>
+            ${item.item_link ? `<a href="${escapeHtml(item.item_link)}" target="_blank" class="wish-link">🔗 View Link</a>` : ''}
+          </div>
+          <button class="btn-delete-wish" onclick="deleteMyWish(${item.id})">✕</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    async function addMyWish() {
+      if (!matchedUser || myWishlist.length >= 10) return;
+      const textInput = document.getElementById("wishTextInput");
+      const linkInput = document.getElementById("wishLinkInput");
+
+      const text = textInput.value.trim();
+      let link = linkInput.value.trim();
+
+      if (!text) {
+        alert("Please enter an item name!");
+        return;
+      }
+
+      if (link && !link.startsWith("http://") && !link.startsWith("https://")) {
+        link = "https://" + link;
+      }
+
+      const { data, error } = await db
+        .from('wishlists')
+        .insert([{ user_name: matchedUser, item_text: text, item_link: link }])
+        .select();
+
+      if (!error && data) {
+        myWishlist.push(data[0]);
+        textInput.value = "";
+        linkInput.value = "";
+        renderMyWishlist();
+      }
+    }
+
+    async function deleteMyWish(id) {
+      const { error } = await db.from('wishlists').delete().eq('id', id);
+      if (!error) {
+        myWishlist = myWishlist.filter(item => item.id !== id);
+        renderMyWishlist();
+      }
+    }
+
+    async function loadTargetWishlist() {
+      const targetContainer = document.getElementById("targetWishlistItems");
+      if (!targetUser) {
+        targetContainer.innerHTML = `<div style="font-style:italic;">No wishlist added yet.</div>`;
+        return;
+      }
+
+      const { data, error } = await db
+        .from('wishlists')
+        .select('*')
+        .eq('user_name', targetUser)
+        .order('created_at', { ascending: true });
+
+      if (error || !data || data.length === 0) {
+        targetContainer.innerHTML = `<div style="font-style:italic; color:#888;">${targetUser} hasn't added any items yet. Check back soon!</div>`;
+        return;
+      }
+
+      let html = `<ul style="padding-left:1.2rem; margin:0; line-height:1.6;">`;
+      data.forEach(item => {
+        html += `<li><strong>${escapeHtml(item.item_text)}</strong>`;
+        if (item.item_link) {
+          html += ` - <a href="${escapeHtml(item.item_link)}" target="_blank" style="color:#3182ce; text-decoration:underline;">View Link</a>`;
+        }
+        html += `</li>`;
+      });
+      html += `</ul>`;
+      targetContainer.innerHTML = html;
+    }
+
+    function escapeHtml(string) {
+      return String(string).replace(/[&<>"']/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[s]);
+    }
+
     /* -------------------------------------------------------------
-       Smart Platform Routing:
-       - iOS: Built-in reliable synthesized music box
-       - Android / Other: Original rich music box track
+       Smart Platform Routing (iOS Synthesizer + Android File Stream)
        ------------------------------------------------------------- */
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -582,9 +855,10 @@
     function revealMatch() {
       if (!matchedUser) return;
 
-      const receiver = PAIRINGS_2026[matchedUser];
-      document.getElementById("matchNameDisplay").textContent = receiver;
+      document.getElementById("matchNameDisplay").textContent = targetUser;
       document.getElementById("revealBox").style.display = "block";
+
+      loadTargetWishlist();
 
       confetti({
         particleCount: 85,
