@@ -46,7 +46,7 @@
       100% { background-position: 40px 250px, 80px 250px, 30px 250px, 100px 250px; }
     }
 
-    /* iOS 100% Reliable Intro Curtain */
+    /* Intro Curtain */
     #welcomeCover {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -103,7 +103,7 @@
       50% { transform: scale(1.05); }
     }
 
-    /* Floating Volume & Music Controls */
+    /* Floating Volume & Controls */
     .music-bar {
       position: fixed;
       top: 1rem;
@@ -149,7 +149,7 @@
       box-shadow: 0 0 6px rgba(0,0,0,0.3);
     }
 
-    /* Main Festive Card */
+    /* Card */
     .card {
       background: rgba(255, 255, 255, 0.96);
       max-width: 420px;
@@ -229,7 +229,7 @@
       box-shadow: 0 4px 15px rgba(192, 57, 43, 0.35);
     }
 
-    /* Revealed Result */
+    /* Result Box */
     .reveal-box {
       display: none;
       background: #fff;
@@ -342,7 +342,7 @@
 <body>
   <div class="snow"></div>
 
-  <!-- Intro Screen: Unlocks audio automatically on tap for iOS/Android -->
+  <!-- Intro Screen (Unlocks audio on both OS upon tap) -->
   <div id="welcomeCover" onclick="openAndStartMusic()">
     <div class="cover-box">
       <div class="cover-tag">🎄 Christmas 2026 🎅</div>
@@ -351,11 +351,17 @@
     </div>
   </div>
 
-  <!-- Volume & Music Controls -->
+  <!-- Volume Controls (Slider & Mute) -->
   <div class="music-bar">
     <button class="vol-btn" id="volIcon" onclick="toggleMute()" title="Mute/Unmute">🔊</button>
     <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="0.6" oninput="changeVolume(this.value)">
   </div>
+
+  <!-- Android Audio Track (Plays the original audio file seamlessly on Android/Desktop) -->
+  <audio id="androidTrack" loop preload="auto">
+    <source src="https://upload.wikimedia.org/wikipedia/commons/e/e8/We_Wish_You_A_Merry_Christmas_-_music_box.ogg" type="audio/ogg">
+    <source src="https://ia800501.us.archive.org/24/items/ChristmasMusicBoxWeWishYouAMerryChristmas/We%20Wish%20You%20a%20Merry%20Christmas.mp3" type="audio/mpeg">
+  </audio>
 
   <div class="card">
     <div class="badge">Secret Santa 2026</div>
@@ -378,7 +384,7 @@
       </div>
     </div>
 
-    <!-- 2. Screen if opened without user link -->
+    <!-- 2. Missing User Link Warning -->
     <div id="unauthorizedScreen" style="display:none;" class="invalid-box">
       🎅 <strong>Private Invitation Only</strong><br><br>
       Please open the private link sent to your WhatsApp so you only see your own Secret Santa draw!
@@ -449,14 +455,22 @@
     }
 
     /* -------------------------------------------------------------
-       Festive Music Box Audio Engine with Dynamic Master Volume
+       Smart Platform Routing:
+       - iOS: Built-in reliable synthesized music box (no mute / CORS lock)
+       - Android / Other: Original rich music box track
        ------------------------------------------------------------- */
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    let currentVolume = 0.6;
+    let preMuteVolume = 0.6;
+    const androidAudio = document.getElementById("androidTrack");
+
+    // iOS Audio Engine
     let audioCtx = null;
     let masterGain = null;
     let isPlaying = false;
     let noteTimer = null;
-    let currentVolume = 0.6;
-    let preMuteVolume = 0.6;
 
     const carolNotes = [
       { f: 261.63, d: 0.38 }, { f: 349.23, d: 0.38 }, { f: 349.23, d: 0.19 }, 
@@ -471,7 +485,7 @@
       { f: 392.00, d: 0.38 }, { f: 329.63, d: 0.38 }, { f: 349.23, d: 0.76 }
     ];
 
-    function initAudioEngine() {
+    function initIOSAudio() {
       if (!audioCtx) {
         const AudioClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioClass();
@@ -484,10 +498,57 @@
       }
     }
 
+    function playIOSStep(idx) {
+      if (!isPlaying || !audioCtx) return;
+      if (idx >= carolNotes.length) idx = 0;
+
+      const note = carolNotes[idx];
+      const now = audioCtx.currentTime;
+
+      const osc = audioCtx.createOscillator();
+      const noteGain = audioCtx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(note.f, now);
+
+      noteGain.gain.setValueAtTime(0.2, now);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.2);
+
+      osc.connect(noteGain);
+      noteGain.connect(masterGain);
+
+      osc.start(now);
+      osc.stop(now + note.d * 1.2);
+
+      noteTimer = setTimeout(() => {
+        playIOSStep(idx + 1);
+      }, note.d * 1000);
+    }
+
+    function startMusic() {
+      if (isIOS) {
+        initIOSAudio();
+        if (!isPlaying) {
+          isPlaying = true;
+          playIOSStep(0);
+        }
+      } else {
+        // Android & PC
+        androidAudio.volume = currentVolume;
+        androidAudio.play().catch(() => {});
+      }
+    }
+
     function changeVolume(val) {
       currentVolume = parseFloat(val);
-      if (masterGain && audioCtx) {
-        masterGain.gain.setValueAtTime(currentVolume, audioCtx.currentTime);
+      if (isIOS) {
+        if (masterGain && audioCtx) {
+          masterGain.gain.setValueAtTime(currentVolume, audioCtx.currentTime);
+        }
+      } else {
+        if (androidAudio) {
+          androidAudio.volume = currentVolume;
+        }
       }
       updateVolumeIcon();
     }
@@ -511,43 +572,8 @@
       else icon.textContent = "🔊";
     }
 
-    function startMusicEngine() {
-      initAudioEngine();
-      if (!isPlaying) {
-        isPlaying = true;
-        playCarollStep(0);
-      }
-    }
-
-    function playCarollStep(idx) {
-      if (!isPlaying || !audioCtx) return;
-      if (idx >= carolNotes.length) idx = 0;
-
-      const note = carolNotes[idx];
-      const now = audioCtx.currentTime;
-
-      const osc = audioCtx.createOscillator();
-      const noteGain = audioCtx.createGain();
-
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(note.f, now);
-
-      noteGain.gain.setValueAtTime(0.2, now);
-      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 1.2);
-
-      osc.connect(noteGain);
-      noteGain.connect(masterGain);
-
-      osc.start(now);
-      osc.stop(now + note.d * 1.2);
-
-      noteTimer = setTimeout(() => {
-        playCarollStep(idx + 1);
-      }, note.d * 1000);
-    }
-
     function openAndStartMusic() {
-      startMusicEngine();
+      startMusic();
       const cover = document.getElementById("welcomeCover");
       cover.style.opacity = "0";
       setTimeout(() => {
