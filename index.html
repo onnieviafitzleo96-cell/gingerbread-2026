@@ -46,27 +46,6 @@
       100% { background-position: 40px 250px, 80px 250px, 30px 250px, 100px 250px; }
     }
 
-    /* Floating Music Pill */
-    .music-btn {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      color: #fff;
-      padding: 0.5rem 0.9rem;
-      border-radius: 50px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
     /* Main Festive Card */
     .card {
       background: rgba(255, 255, 255, 0.96);
@@ -108,7 +87,33 @@
       color: #666;
       font-size: 0.9rem;
       margin-top: 0.2rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    /* Embedded Holiday Audio Player for iOS & Android */
+    .music-container {
+      background: #f0f4f8;
+      border-radius: 16px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #e2e8f0;
+    }
+    .music-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #2b6cb0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    audio {
+      width: 100%;
+      height: 38px;
+      outline: none;
     }
 
     /* Gift Area */
@@ -116,8 +121,8 @@
       background: #fdfaf6;
       border: 2px dashed #e2d7c5;
       border-radius: 20px;
-      padding: 2rem 1.2rem;
-      margin: 1rem 0;
+      padding: 1.8rem 1.2rem;
+      margin: 0.5rem 0;
     }
     .gift-icon {
       font-size: 4.8rem;
@@ -178,7 +183,7 @@
       cursor: pointer;
     }
 
-    /* Missing URL Warning */
+    /* Warning for direct/uninvited visit */
     .invalid-box {
       background: #fff5f5;
       border: 1px solid #feb2b2;
@@ -260,16 +265,6 @@
 <body>
   <div class="snow"></div>
 
-  <!-- Music Toggle Button -->
-  <button class="music-btn" id="musicBtn" onclick="userToggleMusic()">
-    <span id="musicIcon">🎵</span> <span id="musicText">Play Music</span>
-  </button>
-
-  <!-- Reliable Cross-Platform HTML5 Audio (Directly streamed CDN MP3) -->
-  <audio id="holidayAudio" preload="auto" loop playsinline webkit-playsinline>
-    <source src="https://cdn.pixabay.com/download/audio/2022/11/27/audio_49666c0d8f.mp3?filename=we-wish-you-a-merry-christmas-126685.mp3" type="audio/mpeg">
-  </audio>
-
   <div class="card">
     <div class="badge">Secret Santa 2026</div>
     <h1>Gingerbread's Gathering</h1>
@@ -277,7 +272,15 @@
     <!-- 1. Participant Screen -->
     <div id="participantScreen" style="display:none;">
       <div class="user-greeting" id="userNameGreeting">Hi there!</div>
-      <p class="user-sub">Here is your Secret Santa gift draw.</p>
+      <p class="user-sub">Here is your private Christmas draw.</p>
+
+      <!-- Native, 100% iOS Compatible Festive Music Bar -->
+      <div class="music-container">
+        <div class="music-label">🎵 Christmas Music (Tap Play)</div>
+        <audio id="christmasAudio" controls loop playsinline>
+          <source src="https://ia800501.us.archive.org/24/items/ChristmasMusicBoxWeWishYouAMerryChristmas/We%20Wish%20You%20a%20Merry%20Christmas.mp3" type="audio/mpeg">
+        </audio>
+      </div>
 
       <div class="gift-interactive">
         <div class="gift-icon" onclick="revealMatch()">🎁</div>
@@ -326,13 +329,6 @@
   </div>
 
   <script>
-    // Force iOS Safari to play audio even when hardware mute switch is engaged
-    if ('audioSession' in navigator) {
-      try {
-        navigator.audioSession.type = 'playback';
-      } catch (e) {}
-    }
-
     const PAIRINGS_2026 = {
       "Pera": "Elzie",
       "Via": "Rozabelle",
@@ -368,46 +364,15 @@
       unauthorizedScreen.style.display = "block";
     }
 
-    /* --- Cross-Platform Audio Player --- */
-    const audio = document.getElementById("holidayAudio");
-    audio.volume = 0.5;
-    let isPlaying = false;
-
-    function playAudioSafe() {
-      // Re-assert iOS playback category on user gesture
-      if ('audioSession' in navigator) {
-        try { navigator.audioSession.type = 'playback'; } catch (err) {}
-      }
-
-      audio.play().then(() => {
-        isPlaying = true;
-        document.getElementById("musicIcon").textContent = "⏸️";
-        document.getElementById("musicText").textContent = "Pause";
-      }).catch(err => {
-        console.log("Audio unlock required gesture:", err);
-      });
-    }
-
-    function pauseAudioSafe() {
-      audio.pause();
-      isPlaying = false;
-      document.getElementById("musicIcon").textContent = "🎵";
-      document.getElementById("musicText").textContent = "Play Music";
-    }
-
-    function userToggleMusic() {
-      if (isPlaying) {
-        pauseAudioSafe();
-      } else {
-        playAudioSafe();
-      }
-    }
+    const audioPlayer = document.getElementById("christmasAudio");
 
     function revealMatch() {
       if (!matchedUser) return;
 
-      // Start music automatically on iOS & Android upon tapping the gift box
-      playAudioSafe();
+      // Attempt to start audio if they haven't pressed play on the music bar yet
+      if (audioPlayer && audioPlayer.paused) {
+        audioPlayer.play().catch(() => {});
+      }
 
       const receiver = PAIRINGS_2026[matchedUser];
       document.getElementById("matchNameDisplay").textContent = receiver;
