@@ -479,12 +479,6 @@
     <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="0.6" oninput="changeVolume(this.value)">
   </div>
 
-  <!-- Android Audio Track -->
-  <audio id="androidTrack" loop preload="auto">
-    <source src="https://upload.wikimedia.org/wikipedia/commons/e/e8/We_Wish_You_A_Merry_Christmas_-_music_box.ogg" type="audio/ogg">
-    <source src="https://ia800501.us.archive.org/24/items/ChristmasMusicBoxWeWishYouAMerryChristmas/We%20Wish%20You%20a%20Merry%20Christmas.mp3" type="audio/mpeg">
-  </audio>
-
   <div class="card">
     <div class="badge">Secret Santa 2026</div>
     <h1>Gingerbread's Gathering</h1>
@@ -735,12 +729,12 @@
       return String(string).replace(/[&<>"']/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[s]);
     }
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
+    /* -------------------------------------------------------------
+       Unified Web Audio Music Box Engine (Android & iOS)
+       Plays cleanly locally on all mobile devices without CDN failure
+       ------------------------------------------------------------- */
     let currentVolume = 0.6;
     let preMuteVolume = 0.6;
-    const androidAudio = document.getElementById("androidTrack");
 
     let audioCtx = null;
     let masterGain = null;
@@ -760,7 +754,7 @@
       { f: 392.00, d: 0.38 }, { f: 329.63, d: 0.38 }, { f: 349.23, d: 0.76 }
     ];
 
-    function initIOSAudio() {
+    function initAudioContext() {
       if (!audioCtx) {
         const AudioClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioClass();
@@ -773,7 +767,7 @@
       }
     }
 
-    function playIOSStep(idx) {
+    function playCarolStep(idx) {
       if (!isPlaying || !audioCtx) return;
       if (idx >= carolNotes.length) idx = 0;
 
@@ -796,33 +790,22 @@
       osc.stop(now + note.d * 1.2);
 
       noteTimer = setTimeout(() => {
-        playIOSStep(idx + 1);
+        playCarolStep(idx + 1);
       }, note.d * 1000);
     }
 
     function startMusic() {
-      if (isIOS) {
-        initIOSAudio();
-        if (!isPlaying) {
-          isPlaying = true;
-          playIOSStep(0);
-        }
-      } else {
-        androidAudio.volume = currentVolume;
-        androidAudio.play().catch(() => {});
+      initAudioContext();
+      if (!isPlaying) {
+        isPlaying = true;
+        playCarolStep(0);
       }
     }
 
     function changeVolume(val) {
       currentVolume = parseFloat(val);
-      if (isIOS) {
-        if (masterGain && audioCtx) {
-          masterGain.gain.setValueAtTime(currentVolume, audioCtx.currentTime);
-        }
-      } else {
-        if (androidAudio) {
-          androidAudio.volume = currentVolume;
-        }
+      if (masterGain && audioCtx) {
+        masterGain.gain.setValueAtTime(currentVolume, audioCtx.currentTime);
       }
       updateVolumeIcon();
     }
