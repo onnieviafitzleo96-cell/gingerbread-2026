@@ -342,7 +342,7 @@
 <body>
   <div class="snow"></div>
 
-  <!-- Intro Screen (Unlocks audio on both OS upon tap) -->
+  <!-- Intro Screen -->
   <div id="welcomeCover" onclick="openAndStartMusic()">
     <div class="cover-box">
       <div class="cover-tag">🎄 Christmas 2026 🎅</div>
@@ -351,13 +351,13 @@
     </div>
   </div>
 
-  <!-- Volume Controls (Slider & Mute) -->
+  <!-- Volume Controls -->
   <div class="music-bar">
     <button class="vol-btn" id="volIcon" onclick="toggleMute()" title="Mute/Unmute">🔊</button>
     <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="0.6" oninput="changeVolume(this.value)">
   </div>
 
-  <!-- Android Audio Track (Plays the original audio file seamlessly on Android/Desktop) -->
+  <!-- Android Audio Track -->
   <audio id="androidTrack" loop preload="auto">
     <source src="https://upload.wikimedia.org/wikipedia/commons/e/e8/We_Wish_You_A_Merry_Christmas_-_music_box.ogg" type="audio/ogg">
     <source src="https://ia800501.us.archive.org/24/items/ChristmasMusicBoxWeWishYouAMerryChristmas/We%20Wish%20You%20a%20Merry%20Christmas.mp3" type="audio/mpeg">
@@ -395,8 +395,8 @@
 
     <div id="adminPanel" class="admin-panel">
       <div id="adminAuth">
-        <p style="font-size:0.8rem; margin-bottom:0.5rem; color:#666;">Enter Organizer PIN:</p>
-        <input type="password" id="adminPin" placeholder="PIN (2026)" style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid #ccc; border-radius:6px;" />
+        <p style="font-size:0.8rem; margin-bottom:0.5rem; color:#666;">Enter Organizer Passcode:</p>
+        <input type="password" id="adminPin" placeholder="Passcode" style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid #ccc; border-radius:6px;" />
         <button onclick="unlockAdmin()" style="width:100%; padding:0.55rem; background:var(--primary-red); color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Unlock Master Records</button>
       </div>
 
@@ -456,7 +456,7 @@
 
     /* -------------------------------------------------------------
        Smart Platform Routing:
-       - iOS: Built-in reliable synthesized music box (no mute / CORS lock)
+       - iOS: Built-in reliable synthesized music box
        - Android / Other: Original rich music box track
        ------------------------------------------------------------- */
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
@@ -466,7 +466,6 @@
     let preMuteVolume = 0.6;
     const androidAudio = document.getElementById("androidTrack");
 
-    // iOS Audio Engine
     let audioCtx = null;
     let masterGain = null;
     let isPlaying = false;
@@ -533,7 +532,6 @@
           playIOSStep(0);
         }
       } else {
-        // Android & PC
         androidAudio.volume = currentVolume;
         androidAudio.play().catch(() => {});
       }
@@ -599,7 +597,7 @@
       document.getElementById("revealBox").style.display = "none";
     }
 
-    /* --- Organizer Panel Logic --- */
+    /* --- Organizer Panel Logic (Password: 071019) --- */
     function toggleAdmin() {
       const panel = document.getElementById("adminPanel");
       panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -607,12 +605,12 @@
 
     function unlockAdmin() {
       const pin = document.getElementById("adminPin").value;
-      if (pin === "2026") {
+      if (pin === "071019") {
         document.getElementById("adminAuth").style.display = "none";
         document.getElementById("adminBody").style.display = "block";
         buildAdminContent();
       } else {
-        alert("Incorrect PIN");
+        alert("Incorrect passcode");
       }
     }
 
