@@ -503,7 +503,7 @@
 <body>
   <div class="shore-mist"></div>
 
-  <!-- Intro Screen (Unlocks Web Audio smoothly on iPhone & Android) -->
+  <!-- Intro Screen -->
   <div id="welcomeCover" onclick="openAndStartMusic()">
     <div class="cover-box">
       <div class="cover-tag">🌊 Joy by the Shore 🌿</div>
@@ -513,7 +513,7 @@
     </div>
   </div>
 
-  <!-- Volume Controls (Slider & Mute) -->
+  <!-- Volume Controls -->
   <div class="music-bar">
     <button class="vol-btn" id="volIcon" onclick="toggleMute()" title="Mute/Unmute">🔊</button>
     <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="0.6" oninput="changeVolume(this.value)">
@@ -608,10 +608,7 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mdWF5a3ZkbGFzeGhzdGNjd2RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTI0MzgsImV4cCI6MjEwNTgyODQzOH0.f0mUjTiGtmQT0mUSnFZRzIoSseM3m0lY7CH0A6pe650";
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    /* 
-      COMPLETE 3-YEAR EXCLUSION MATRIX (2023 + 2024 + 2025)
-      Strictly avoids any past recipients!
-    */
+    /* 3-YEAR EXCLUSION MATRIX (2023 + 2024 + 2025) */
     const EXCLUSIONS_HISTORY = {
       "Pera": ["Merry", "Jason"],
       "Via": ["Leo", "Gadi", "Merry"],
@@ -632,7 +629,7 @@
       "Evelyn", "Gadi", "Ching", "Merry", "Lulong", "Gimbs", "Elzie"
     ];
 
-    // Verified 2026 pairings violating ZERO 2023, 2024, or 2025 matches
+    // Fallback baseline pairings
     let PAIRINGS_2026 = {
       "Pera": "Elzie",
       "Via": "Rozabelle",
@@ -648,12 +645,6 @@
       "Elzie": "Via"
     };
 
-    // Load persisted pairings from localStorage if available
-    const savedDraw = localStorage.getItem("bedamping_enggau_alam_2026");
-    if (savedDraw) {
-      try { PAIRINGS_2026 = JSON.parse(savedDraw); } catch(e) {}
-    }
-
     const params = new URLSearchParams(window.location.search);
     const rawUser = params.get('user');
 
@@ -668,17 +659,44 @@
       matchedUser = PARTICIPANTS.find(p => p.toLowerCase() === rawUser.trim().toLowerCase());
     }
 
-    if (matchedUser) {
-      targetUser = PAIRINGS_2026[matchedUser];
-      participantScreen.style.display = "block";
-      document.getElementById("userNameGreeting").textContent = `👋 Hi ${matchedUser}!`;
-      document.getElementById("targetNameLabel").textContent = targetUser;
-      loadMyWishlist();
-    } else {
-      unauthorizedScreen.style.display = "block";
+    /* --- Cloud Synchronized Draw Fetcher --- */
+    async function loadActiveDraw() {
+      // 1. Try to load from Supabase cloud so all devices stay in sync
+      try {
+        const { data, error } = await db
+          .from('app_config')
+          .select('config_value')
+          .eq('id', 'pairings_2026')
+          .single();
+
+        if (!error && data && data.config_value) {
+          PAIRINGS_2026 = data.config_value;
+          localStorage.setItem("bedamping_enggau_alam_2026", JSON.stringify(PAIRINGS_2026));
+        } else {
+          // If not in cloud yet, check localStorage
+          const local = localStorage.getItem("bedamping_enggau_alam_2026");
+          if (local) PAIRINGS_2026 = JSON.parse(local);
+        }
+      } catch (e) {
+        const local = localStorage.getItem("bedamping_enggau_alam_2026");
+        if (local) PAIRINGS_2026 = JSON.parse(local);
+      }
+
+      // Update participant view with the cloud-synced match
+      if (matchedUser) {
+        targetUser = PAIRINGS_2026[matchedUser];
+        participantScreen.style.display = "block";
+        document.getElementById("userNameGreeting").textContent = `👋 Hi ${matchedUser}!`;
+        document.getElementById("targetNameLabel").textContent = targetUser;
+        loadMyWishlist();
+      } else {
+        unauthorizedScreen.style.display = "block";
+      }
     }
 
-    /* --- Reshuffle Algorithm (Strictly Checks All 3 Years & No Self-Picks) --- */
+    loadActiveDraw();
+
+    /* --- Reshuffle Algorithm & Cloud Sync --- */
     function generateNewPairings() {
       let attempts = 0;
       while (attempts < 10000) {
@@ -705,20 +723,31 @@
       return null;
     }
 
-    function confirmReshuffle() {
-      if (confirm("⚠️ Reshuffle All Pairings?\n\nThis will re-roll all assignments while strictly ensuring NO ONE gets anyone they drew in 2023, 2024, or 2025!")) {
+    async function confirmReshuffle() {
+      if (confirm("⚠️ Reshuffle All Pairings?\n\nThis will re-roll all assignments, save it to the cloud, and update it instantly for every participant!")) {
         const newPairs = generateNewPairings();
         if (newPairs) {
           PAIRINGS_2026 = newPairs;
           localStorage.setItem("bedamping_enggau_alam_2026", JSON.stringify(PAIRINGS_2026));
+
+          // Save to Supabase so other phones receive the reshuffle!
+          try {
+            await db
+              .from('app_config')
+              .upsert({ id: 'pairings_2026', config_value: PAIRINGS_2026 });
+          } catch(err) {
+            console.error("Supabase upsert error:", err);
+          }
+
           if (matchedUser) {
             targetUser = PAIRINGS_2026[matchedUser];
             document.getElementById("targetNameLabel").textContent = targetUser;
           }
+
           buildAdminContent();
-          alert("🎉 Fresh 2026 draw generated! All 3-year exclusions respected.");
+          alert("🎉 Reshuffled and saved to the cloud! Everyone will now see their new match.");
         } else {
-          alert("Could not find a valid combination. Please try again.");
+          alert("Could not generate a valid draw. Please try again.");
         }
       }
     }
@@ -839,7 +868,7 @@
     }
 
     /* -------------------------------------------------------------
-       Unified Web Audio Engine (Retained Music-Box Song)
+       Unified Web Audio Engine (Music-Box Song)
        ------------------------------------------------------------- */
     let audioCtx = null;
     let masterGain = null;
@@ -949,7 +978,6 @@
 
       loadTargetWishlist();
 
-      // Confetti with ocean teal, sand gold, and soft coral colors
       confetti({
         particleCount: 90,
         spread: 75,
