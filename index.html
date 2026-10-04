@@ -49,7 +49,7 @@
       z-index: 1;
     }
     @keyframes gentleBreeze {
-      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      0% { background-position: 0 0, 0 0, 0 0; }
       50% { background-position: 30px 130px, -20px 130px, 40px 130px, -30px 130px; }
       100% { background-position: 60px 260px, -40px 260px, 80px 260px, -60px 260px; }
     }
@@ -486,18 +486,6 @@
       cursor: pointer;
       margin-top: 0.8rem;
     }
-    .btn-reshuffle {
-      width: 100%;
-      background: linear-gradient(135deg, #e76f51, #f4a261);
-      color: #fff;
-      border: none;
-      padding: 0.65rem;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 0.5rem;
-      box-shadow: 0 4px 10px rgba(231, 111, 81, 0.25);
-    }
   </style>
 </head>
 <body>
@@ -592,7 +580,6 @@
         <div id="tabMasterView">
           <div id="masterListContent"></div>
           <button class="btn-copy" onclick="copyMasterHistory()">📋 Copy Master Record</button>
-          <button class="btn-reshuffle" onclick="confirmReshuffle()">🎲 Reshuffle All (Excluding 2023, 2024 & 2025)</button>
         </div>
 
         <div id="tabShareView" style="display:none;">
@@ -608,42 +595,31 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mdWF5a3ZkbGFzeGhzdGNjd2RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTI0MzgsImV4cCI6MjEwNTgyODQzOH0.f0mUjTiGtmQT0mUSnFZRzIoSseM3m0lY7CH0A6pe650";
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    /* 3-YEAR EXCLUSION MATRIX (2023 + 2024 + 2025) */
-    const EXCLUSIONS_HISTORY = {
-      "Pera": ["Merry", "Jason"],
-      "Via": ["Leo", "Gadi", "Merry"],
-      "Leara": ["Gadi", "Merry", "Mag"],
-      "Rozabelle": ["Caleb", "Via", "Eric"],
-      "Niki": ["Elzie", "Peraa", "Pera"],
-      "Evelyn": ["Via", "Ekka"],
-      "Gadi": ["Ching", "Magdalen", "Buna"],
-      "Ching": ["Leara", "Joan", "Bellep", "Rozabelle"],
-      "Merry": ["Jason", "Evelyn", "Aggy"],
-      "Lulong": ["Eric", "Ching", "Sharone"],
-      "Gimbs": ["Peraa", "Pera", "Evonna", "Lulong"],
-      "Elzie": ["Aggy", "Leara", "Ikuk"]
-    };
-
-    const PARTICIPANTS = [
-      "Pera", "Via", "Leara", "Rozabelle", "Niki", 
-      "Evelyn", "Gadi", "Ching", "Merry", "Lulong", "Gimbs", "Elzie"
-    ];
-
-    // Fallback baseline pairings
-    let PAIRINGS_2026 = {
-      "Pera": "Elzie",
-      "Via": "Rozabelle",
-      "Leara": "Pera",
-      "Rozabelle": "Lulong",
-      "Niki": "Gimbs",
-      "Evelyn": "Merry",
-      "Gadi": "Leara",
-      "Ching": "Niki",
-      "Merry": "Gadi",
+    /* 
+      Locked 2026 Draw:
+      - 0 repeat matches across 2023, 2024, or 2025
+      - 0 two-person mutual loops (no A->B and B->A)
+    */
+    const PAIRINGS_2026 = {
+      "Pera": "Lulong",
       "Lulong": "Evelyn",
-      "Gimbs": "Ching",
-      "Elzie": "Via"
+      "Evelyn": "Leara",
+      "Leara": "Via",
+      "Via": "Elzie",
+      "Elzie": "Rozabelle",
+      "Rozabelle": "Pera",
+      "Niki": "Gadi",
+      "Gadi": "Merry",
+      "Merry": "Ching",
+      "Ching": "Gimbs",
+      "Gimbs": "Niki"
     };
+
+    const PARTICIPANTS = Object.keys(PAIRINGS_2026);
+
+    // Clear legacy local storage keys
+    localStorage.removeItem("bedamping_enggau_alam_2026");
+    localStorage.removeItem("gingerbread_pairings_2026");
 
     const params = new URLSearchParams(window.location.search);
     const rawUser = params.get('user');
@@ -659,97 +635,14 @@
       matchedUser = PARTICIPANTS.find(p => p.toLowerCase() === rawUser.trim().toLowerCase());
     }
 
-    /* --- Cloud Synchronized Draw Fetcher --- */
-    async function loadActiveDraw() {
-      // 1. Try to load from Supabase cloud so all devices stay in sync
-      try {
-        const { data, error } = await db
-          .from('app_config')
-          .select('config_value')
-          .eq('id', 'pairings_2026')
-          .single();
-
-        if (!error && data && data.config_value) {
-          PAIRINGS_2026 = data.config_value;
-          localStorage.setItem("bedamping_enggau_alam_2026", JSON.stringify(PAIRINGS_2026));
-        } else {
-          // If not in cloud yet, check localStorage
-          const local = localStorage.getItem("bedamping_enggau_alam_2026");
-          if (local) PAIRINGS_2026 = JSON.parse(local);
-        }
-      } catch (e) {
-        const local = localStorage.getItem("bedamping_enggau_alam_2026");
-        if (local) PAIRINGS_2026 = JSON.parse(local);
-      }
-
-      // Update participant view with the cloud-synced match
-      if (matchedUser) {
-        targetUser = PAIRINGS_2026[matchedUser];
-        participantScreen.style.display = "block";
-        document.getElementById("userNameGreeting").textContent = `👋 Hi ${matchedUser}!`;
-        document.getElementById("targetNameLabel").textContent = targetUser;
-        loadMyWishlist();
-      } else {
-        unauthorizedScreen.style.display = "block";
-      }
-    }
-
-    loadActiveDraw();
-
-    /* --- Reshuffle Algorithm & Cloud Sync --- */
-    function generateNewPairings() {
-      let attempts = 0;
-      while (attempts < 10000) {
-        attempts++;
-        let pool = [...PARTICIPANTS];
-        let result = {};
-        let failed = false;
-
-        for (let giver of PARTICIPANTS) {
-          const pastDisallowed = EXCLUSIONS_HISTORY[giver] || [];
-          let validTargets = pool.filter(p => p !== giver && !pastDisallowed.includes(p));
-          
-          if (validTargets.length === 0) {
-            failed = true;
-            break;
-          }
-          let pick = validTargets[Math.floor(Math.random() * validTargets.length)];
-          result[giver] = pick;
-          pool = pool.filter(p => p !== pick);
-        }
-
-        if (!failed) return result;
-      }
-      return null;
-    }
-
-    async function confirmReshuffle() {
-      if (confirm("⚠️ Reshuffle All Pairings?\n\nThis will re-roll all assignments, save it to the cloud, and update it instantly for every participant!")) {
-        const newPairs = generateNewPairings();
-        if (newPairs) {
-          PAIRINGS_2026 = newPairs;
-          localStorage.setItem("bedamping_enggau_alam_2026", JSON.stringify(PAIRINGS_2026));
-
-          // Save to Supabase so other phones receive the reshuffle!
-          try {
-            await db
-              .from('app_config')
-              .upsert({ id: 'pairings_2026', config_value: PAIRINGS_2026 });
-          } catch(err) {
-            console.error("Supabase upsert error:", err);
-          }
-
-          if (matchedUser) {
-            targetUser = PAIRINGS_2026[matchedUser];
-            document.getElementById("targetNameLabel").textContent = targetUser;
-          }
-
-          buildAdminContent();
-          alert("🎉 Reshuffled and saved to the cloud! Everyone will now see their new match.");
-        } else {
-          alert("Could not generate a valid draw. Please try again.");
-        }
-      }
+    if (matchedUser) {
+      targetUser = PAIRINGS_2026[matchedUser];
+      participantScreen.style.display = "block";
+      document.getElementById("userNameGreeting").textContent = `👋 Hi ${matchedUser}!`;
+      document.getElementById("targetNameLabel").textContent = targetUser;
+      loadMyWishlist();
+    } else {
+      unauthorizedScreen.style.display = "block";
     }
 
     /* --- Wishlist Cloud Sync --- */
@@ -868,7 +761,7 @@
     }
 
     /* -------------------------------------------------------------
-       Unified Web Audio Engine (Music-Box Song)
+       Unified Web Audio Engine
        ------------------------------------------------------------- */
     let audioCtx = null;
     let masterGain = null;
