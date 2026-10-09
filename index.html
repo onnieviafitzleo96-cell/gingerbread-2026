@@ -51,7 +51,7 @@
       z-index: 1;
     }
     @keyframes gentleBreeze {
-      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      0% { background-position: 0 0, 0 0, 0 0; }
       50% { background-position: 30px 130px, -20px 130px, 40px 130px, -30px 130px; }
       100% { background-position: 60px 260px, -40px 260px, 80px 260px, -60px 260px; }
     }
@@ -411,6 +411,60 @@
       padding: 0.2rem 0.4rem;
     }
 
+    /* Public Community Wishlist Section */
+    .community-box {
+      margin-top: 1.4rem;
+      background: #fdfaf6;
+      border: 1px solid #e9dcc9;
+      border-radius: 20px;
+      padding: 1.1rem;
+      text-align: left;
+    }
+    .community-toggle-btn {
+      width: 100%;
+      background: #ffffff;
+      color: #1d3557;
+      border: 1px solid #d8cfbe;
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .community-content {
+      display: none;
+      margin-top: 0.9rem;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .person-card {
+      background: #ffffff;
+      border: 1px solid #eee5d8;
+      border-radius: 12px;
+      padding: 0.75rem 0.9rem;
+      margin-bottom: 0.6rem;
+    }
+    .person-name {
+      font-weight: 800;
+      color: var(--coastal-teal);
+      font-size: 0.92rem;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .person-wishes {
+      padding-left: 1.2rem;
+      margin: 0;
+      font-size: 0.83rem;
+      color: #4a5568;
+      line-height: 1.45;
+    }
+
     /* Missing Link Warning */
     .invalid-box {
       background: #fff8f5;
@@ -555,6 +609,17 @@
           <!-- Live items -->
         </div>
       </div>
+
+      <!-- Public Community Wishlist Directory (No Spoilers) -->
+      <div class="community-box">
+        <button class="community-toggle-btn" onclick="toggleCommunityBoard()">
+          <span>📜 Browse Everyone's Wishlists</span>
+          <span id="communityArrow">▼</span>
+        </button>
+        <div id="communityContent" class="community-content">
+          <div id="allWishlistsList" style="font-size:0.85rem; color:#718096;">Loading community wishlists...</div>
+        </div>
+      </div>
     </div>
 
     <!-- 2. Missing User Link Warning -->
@@ -627,13 +692,15 @@
       "Gimbs": "Niki"
     };
 
-    // Kill old browser storage cache completely
     try {
       localStorage.clear();
       sessionStorage.clear();
     } catch(e) {}
 
-    const PARTICIPANTS = Object.keys(MASTER_PAIRINGS_2026);
+    const PARTICIPANTS = [
+      "Ching", "Elzie", "Evelyn", "Gadi", "Gimbs", 
+      "Leara", "Lulong", "Merry", "Niki", "Pera", "Rozabelle", "Via"
+    ];
 
     const params = new URLSearchParams(window.location.search);
     const rawUser = params.get('user');
@@ -655,6 +722,7 @@
       document.getElementById("userNameGreeting").textContent = `👋 Hi ${matchedUser}!`;
       document.getElementById("targetNameLabel").textContent = targetUser;
       loadMyWishlist();
+      loadAllWishlists();
     } else {
       unauthorizedScreen.style.display = "block";
     }
@@ -694,7 +762,7 @@
         row.innerHTML = `
           <div class="wish-info">
             <span class="wish-text">${escapeHtml(item.item_text)}</span>
-            ${item.item_link ? `<a href="${escapeHtml(item.item_link)}" target="_blank" class="wish-link">🔗 View Link</a>` : ''}
+            ${item.item_link ? `<a href="\${escapeHtml(item.item_link)}" target="_blank" class="wish-link">🔗 View Link</a>` : ''}
           </div>
           <button class="btn-delete-wish" onclick="deleteMyWish(${item.id})">✕</button>
         `;
@@ -729,6 +797,7 @@
         textInput.value = "";
         linkInput.value = "";
         renderMyWishlist();
+        loadAllWishlists();
       }
     }
 
@@ -737,6 +806,7 @@
       if (!error) {
         myWishlist = myWishlist.filter(item => item.id !== id);
         renderMyWishlist();
+        loadAllWishlists();
       }
     }
 
@@ -768,6 +838,63 @@
       });
       html += `</ul>`;
       targetContainer.innerHTML = html;
+    }
+
+    /* --- Public Community Wishlists Directory (Without Spoilers) --- */
+    async function loadAllWishlists() {
+      const board = document.getElementById("allWishlistsList");
+      const { data, error } = await db
+        .from('wishlists')
+        .select('*')
+        .order('user_name', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      if (error || !data) {
+        board.innerHTML = `<div style="font-style:italic; color:#888;">Could not load wishlists.</div>`;
+        return;
+      }
+
+      // Group by user name
+      const grouped = {};
+      PARTICIPANTS.forEach(name => grouped[name] = []);
+      data.forEach(item => {
+        if (!grouped[item.user_name]) grouped[item.user_name] = [];
+        grouped[item.user_name].push(item);
+      });
+
+      let html = "";
+      PARTICIPANTS.forEach(name => {
+        const items = grouped[name];
+        html += `<div class="person-card">
+          <div class="person-name">🐚 ${name}</div>`;
+        if (items.length === 0) {
+          html += `<div style="font-size:0.8rem; color:#a0aec0; font-style:italic; padding-left:1.2rem;">Hasn't added any items yet</div>`;
+        } else {
+          html += `<ul class="person-wishes">`;
+          items.forEach(w => {
+            html += `<li><strong>${escapeHtml(w.item_text)}</strong>`;
+            if (w.item_link) {
+              html += ` - <a href="${escapeHtml(w.item_link)}" target="_blank" style="color:#2a9d8f; text-decoration:underline;">Link</a>`;
+            }
+            html += `</li>`;
+          });
+          html += `</ul>`;
+        }
+        html += `</div>`;
+      });
+
+      board.innerHTML = html;
+    }
+
+    function toggleCommunityBoard() {
+      const box = document.getElementById("communityContent");
+      const arrow = document.getElementById("communityArrow");
+      const isHidden = box.style.display === "" || box.style.display === "none";
+      box.style.display = isHidden ? "block" : "none";
+      arrow.textContent = isHidden ? "▲" : "▼";
+      if (isHidden) {
+        loadAllWishlists();
+      }
     }
 
     function escapeHtml(string) {
@@ -938,7 +1065,7 @@
         mRow.innerHTML = `<strong>${giver}</strong> ➔ <span style="color:#2a9d8f; font-weight:bold;">${rec}</span>`;
         masterBox.appendChild(mRow);
 
-        // Share Link Row with Cache-Buster Parameter
+        // Share Link Row with Cache-Buster
         const link = `${baseUrl}?user=${encodeURIComponent(giver)}&v=2026final`;
         const waMsg = encodeURIComponent(`🌿 Bedamping Enggau Alam (Joy by the Shore): Hi ${giver}, here is your private Secret Santa invite! Tap to see who you got: ${link}`);
         const sRow = document.createElement("div");
